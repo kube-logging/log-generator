@@ -51,7 +51,7 @@ func NewNginxLogRandom() NginxLog {
 		wr.Choice{Item: 200, Weight: 7},
 		wr.Choice{Item: 404, Weight: 3},
 		wr.Choice{Item: 503, Weight: 1},
-		wr.Choice{Item: 302, Weight: 4},
+		wr.Choice{Item: 302, Weight: 2},
 		wr.Choice{Item: 403, Weight: 2},
 	)
 	return NginxLog{
