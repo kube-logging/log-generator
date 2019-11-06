@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/nginx-log-generator.iml" filepath="$PROJECT_DIR$/nginx-log-generator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/log-generator.iml" filepath="$PROJECT_DIR$/.idea/log-generator.iml" />
     </modules>
   </component>
 </project>
