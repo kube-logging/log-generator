@@ -47,14 +47,9 @@ app:
   # Metrics server listen address  (Default: "11000")
   metricsAddr: "11000"
 
-#metrics
-service:
-  type: ClusterIP
-  port: 80
-
 metrics:
   serviceMonitor:
-    enabled: true
+    enabled: false
     additionalLabels: {}
     # namespace: monitoring
     # interval: 30s
