@@ -57,14 +57,6 @@ spec:
             - name: metrics
               containerPort: {{ .Values.app.metricsAddr }}
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: metrics
-          readinessProbe:
-            httpGet:
-              path: /
-              port: metrics
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
