@@ -99,7 +99,7 @@ type Entry struct {
 	Line string
 }
 
-func send(url string, randomLabels int, debug bool, entries []Entry) {
+func send(url string, randomLabels int, host string, debug bool, entries []Entry) {
 	type stream struct {
 		Labels  string
 		Entries []Entry
@@ -108,7 +108,7 @@ func send(url string, randomLabels int, debug bool, entries []Entry) {
 	payload := struct{ Streams []stream }{}
 	for _, entry := range entries {
 		n := rand.Intn(randomLabels)
-		payload.Streams = append(payload.Streams, stream{Labels: fmt.Sprintf(`{application="my-test-application", type="events", fake="n%d"}`, n), Entries: []Entry{entry}})
+		payload.Streams = append(payload.Streams, stream{Labels: fmt.Sprintf(`{application="my-test-application", type="events", fake="n%d", pod=%q}`, n, host), Entries: []Entry{entry}})
 	}
 
 	buf, err := json.Marshal(payload)
@@ -149,6 +149,7 @@ func main() {
 
 	done := make(chan bool)
 	messages := make(chan string, 100)
+	host, _ := os.Hostname()
 
 	go func() {
 		if *lokiURL == "" {
@@ -164,12 +165,12 @@ func main() {
 				}
 				queue = append(queue, entry)
 				if len(queue) >= *lokiBatch {
-					send(*lokiURL, *lokiRandomLabel, *debug, queue)
+					send(*lokiURL, *lokiRandomLabel, host, *debug, queue)
 					queue = make([]Entry, 0, *lokiBatch)
 				}
 			}
 			if len(queue) > 0 {
-				send(*lokiURL, *lokiRandomLabel, *debug, queue)
+				send(*lokiURL, *lokiRandomLabel, host, *debug, queue)
 			}
 		}
 		done <- true
