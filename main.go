@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -55,7 +56,6 @@ func NewNginxLog() NginxLog {
 }
 
 func NewNginxLogRandom() NginxLog {
-	rand.Seed(time.Now().UTC().UnixNano())
 	c := wr.NewChooser(
 		wr.Choice{Item: 200, Weight: 7},
 		wr.Choice{Item: 404, Weight: 3},
@@ -99,7 +99,7 @@ type Entry struct {
 	Line string
 }
 
-func send(url string, entries []Entry) {
+func send(url string, randomLabels int, debug bool, entries []Entry) {
 	type stream struct {
 		Labels  string
 		Entries []Entry
@@ -107,7 +107,8 @@ func send(url string, entries []Entry) {
 
 	payload := struct{ Streams []stream }{}
 	for _, entry := range entries {
-		payload.Streams = append(payload.Streams, stream{Labels: `{application="my-test-application", type="events"}`, Entries: []Entry{entry}})
+		n := rand.Intn(randomLabels)
+		payload.Streams = append(payload.Streams, stream{Labels: fmt.Sprintf(`{application="my-test-application", type="events", fake="n%d"}`, n), Entries: []Entry{entry}})
 	}
 
 	buf, err := json.Marshal(payload)
@@ -115,16 +116,20 @@ func send(url string, entries []Entry) {
 		panic(err)
 	}
 
-	_, err = http.Post(url, "application/json", bytes.NewReader(buf))
+	resp, err := http.Post(url, "application/json", bytes.NewReader(buf))
 	if err != nil {
 		fmt.Printf("failed to send %d entries: %v\n", len(entries), err)
+	} else if resp.StatusCode >= 300 || debug {
+		buf, _ := ioutil.ReadAll(resp.Body)
+		fmt.Printf("sent %d entries. response %s: %s\n", len(entries), resp.Status, buf)
 	}
-
 }
 
 //labels{\"streams\": [{ \"labels\": \"{application=\\\"my-test-application\\\", type=\\\"events\\\"}\", \"entries\": [{ \"ts\": \"${NOW}\", \"line\": \"${LINE}\" }] }]}"
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	minIntervall := flag.String("min-intervall", "100ms", "Minimum interval between log messages")
 	maxIntervall := flag.String("max-intervall", "1s", "Maximum interval between log messages")
 	count := flag.Int("count", 0, "The amount of log message to emit.")
@@ -134,6 +139,8 @@ func main() {
 	metrics := flag.Bool("metrics", true, "Provide metrics endpoint")
 	lokiURL := flag.String("loki-url", "", "Loki endpoint to send logs to instead of stdout. Example: http://loki:password@localhost:8123/api/prom/push")
 	lokiBatch := flag.Int("loki-batch", 100, "Batch size of loki push requests")
+	lokiRandomLabel := flag.Int("loki-random", 10, "How much different 'fake' labels should be used as a label")
+	debug := flag.Bool("debug", false, "Verbose output")
 
 	flag.Parse()
 
@@ -157,14 +164,15 @@ func main() {
 				}
 				queue = append(queue, entry)
 				if len(queue) >= *lokiBatch {
-					send(*lokiURL, queue)
+					send(*lokiURL, *lokiRandomLabel, *debug, queue)
 					queue = make([]Entry, 0, *lokiBatch)
 				}
 			}
 			if len(queue) > 0 {
-				send(*lokiURL, queue)
+				send(*lokiURL, *lokiRandomLabel, *debug, queue)
 			}
 		}
+		done <- true
 	}()
 
 	go func() {
@@ -209,7 +217,6 @@ func main() {
 			// Increment counter
 			i++
 		}
-		done <- true
 	}()
 
 	if *metrics {
