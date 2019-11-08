@@ -19,4 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o loggen m
 FROM gcr.io/distroless/static:latest
 WORKDIR /
 COPY --from=builder /workspace/loggen .
+
 ENTRYPOINT ["/loggen"]
+
+CMD ["-loki-url=http://loki:password@localhost:8123/api/prom/push","-min-intervall=1ns","-event-per-sec=100000","-max-intervall=2ns"]
