@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: banzaicloud/loggen
-  tag: latest
+  tag: 0.1
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -33,9 +33,9 @@ securityContext: {}
 
 app:
   # Minimum interval between log messages (ms) (Default: 100)
-  minInterval: 100
+  # minInterval: 100
   # Maximum interval between log messages (s) (Default: 1)
-  maxIntervall: 1
+  # maxIntervall: 1
   # The amount of log message to emit. (Default: 0)
   count: 0
   # Randomise log content (Default: true)
@@ -51,6 +51,14 @@ app:
 service:
   type: ClusterIP
   port: 80
+
+metrics:
+  serviceMonitor:
+    enabled: true
+    additionalLabels: {}
+    # namespace: monitoring
+    # interval: 30s
+    # scrapeTimeout: 10s
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
