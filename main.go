@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -92,6 +94,36 @@ var (
 	})
 )
 
+type Entry struct {
+	Ts   time.Time
+	Line string
+}
+
+func send(url string, entries []Entry) {
+	type stream struct {
+		Labels  string
+		Entries []Entry
+	}
+
+	payload := struct{ Streams []stream }{}
+	for _, entry := range entries {
+		payload.Streams = append(payload.Streams, stream{Labels: `{application="my-test-application", type="events"}`, Entries: []Entry{entry}})
+	}
+
+	buf, err := json.Marshal(payload)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = http.Post(url, "application/json", bytes.NewReader(buf))
+	if err != nil {
+		fmt.Printf("failed to send %d entries: %v\n", len(entries), err)
+	}
+
+}
+
+//labels{\"streams\": [{ \"labels\": \"{application=\\\"my-test-application\\\", type=\\\"events\\\"}\", \"entries\": [{ \"ts\": \"${NOW}\", \"line\": \"${LINE}\" }] }]}"
+
 func main() {
 	minIntervall := flag.String("min-intervall", "100ms", "Minimum interval between log messages")
 	maxIntervall := flag.String("max-intervall", "1s", "Maximum interval between log messages")
@@ -99,6 +131,9 @@ func main() {
 	randomise := flag.Bool("randomise", true, "Randomise log content")
 	eventPerSec := flag.Int("event-per-sec", 10, "The amount of log message to emit/s")
 	metricsAddr := flag.String("metrics.addr", ":11000", "Metrics server listen address")
+	metrics := flag.Bool("metrics", true, "Provide metrics endpoint")
+	lokiURL := flag.String("loki-url", "", "Loki endpoint to send logs to instead of stdout. Example: http://loki:password@localhost:8123/api/prom/push")
+	lokiBatch := flag.Int("loki-batch", 100, "Batch size of loki push requests")
 
 	flag.Parse()
 
@@ -106,6 +141,31 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	done := make(chan bool)
+	messages := make(chan string, 100)
+
+	go func() {
+		if *lokiURL == "" {
+			for msg := range messages {
+				fmt.Println(msg)
+			}
+		} else {
+			queue := make([]Entry, 0, *lokiBatch)
+			for msg := range messages {
+				entry := Entry{
+					Ts:   time.Now(),
+					Line: msg,
+				}
+				queue = append(queue, entry)
+				if len(queue) >= *lokiBatch {
+					send(*lokiURL, queue)
+					queue = make([]Entry, 0, *lokiBatch)
+				}
+			}
+			if len(queue) > 0 {
+				send(*lokiURL, queue)
+			}
+		}
+	}()
 
 	go func() {
 		i := 0
@@ -123,7 +183,7 @@ func main() {
 			}
 
 			msg, size := n.String()
-			fmt.Println(msg)
+			messages <- msg
 			eventEmitted.Inc()
 			eventEmittedBytes.Add(size)
 
@@ -152,12 +212,14 @@ func main() {
 		done <- true
 	}()
 
-	go func() {
-		fmt.Println("metrics listen on: ", *metricsAddr)
-		http.Handle("/metrics", promhttp.Handler())
-		http.ListenAndServe(*metricsAddr, nil)
-		fmt.Println("main loop started")
-	}()
+	if *metrics {
+		go func() {
+			fmt.Println("metrics listen on: ", *metricsAddr)
+			http.Handle("/metrics", promhttp.Handler())
+			http.ListenAndServe(*metricsAddr, nil)
+			fmt.Println("main loop started")
+		}()
+	}
 
 	select {
 	case <-done:
