@@ -54,7 +54,7 @@ service:
 
 metrics:
   serviceMonitor:
-    enabled: true
+    enabled: false
     additionalLabels: {}
     # namespace: monitoring
     # interval: 30s
