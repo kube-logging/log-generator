@@ -43,11 +43,11 @@ func NewNginxLog() NginxLog {
 		User:              "-",
 		Time:              time.Time{},
 		Method:            "GET",
-		Path:              "/loggen",
+		Path:              "/loggen/loggen/loggen/loggen/loggen/loggen/loggen",
 		Code:              200,
 		Size:              650,
 		Referer:           "-",
-		Agent:             "golang/generator",
+		Agent:             "golang/generator PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
 		HttpXForwardedFor: "-",
 	}
 }
@@ -92,12 +92,32 @@ var (
 	})
 )
 
+func TickerForByte(bandwith int) *time.Ticker {
+	_, length := NewNginxLog().String()
+	events := float64(1) / (float64(length) / float64(bandwith))
+	duration := float64(1000) / float64(events)
+	return time.NewTicker(time.Duration(duration) * time.Millisecond)
+}
+
+func TickerForEvent(events int) *time.Ticker {
+	duration := float64(1000) / float64(events)
+	return time.NewTicker(time.Duration(duration) * time.Millisecond)
+}
+
+func emitMessage(gen LogGen) {
+	msg, size := gen.String()
+	fmt.Println(msg)
+	eventEmitted.Inc()
+	eventEmittedBytes.Add(size)
+}
+
 func main() {
-	minIntervall := flag.String("min-intervall", "100ms", "Minimum interval between log messages")
-	maxIntervall := flag.String("max-intervall", "1s", "Maximum interval between log messages")
+	//minIntervall := flag.String("min-intervall", "100ms", "Minimum interval between log messages")
+	//maxIntervall := flag.String("max-intervall", "1s", "Maximum interval between log messages")
 	count := flag.Int("count", 0, "The amount of log message to emit.")
 	randomise := flag.Bool("randomise", true, "Randomise log content")
-	eventPerSec := flag.Int("event-per-sec", 10, "The amount of log message to emit/s")
+	eventPerSec := flag.Int("event-per-sec", 2, "The amount of log message to emit/s")
+	bytePerSec := flag.Int("byte-per-sec", 20, "The amount of bytes to emit/s")
 	metricsAddr := flag.String("metrics.addr", ":11000", "Metrics server listen address")
 
 	flag.Parse()
@@ -107,50 +127,7 @@ func main() {
 
 	done := make(chan bool)
 
-	go func() {
-		i := 0
-		for {
-			// If we have count check counter
-			if *count > 0 && !(i < *count) {
-				break
-			}
-
-			var n LogGen
-			if *randomise {
-				n = NewNginxLogRandom()
-			} else {
-				n = NewNginxLog()
-			}
-
-			msg, size := n.String()
-			fmt.Println(msg)
-			eventEmitted.Inc()
-			eventEmittedBytes.Add(size)
-
-			var duration time.Duration
-			if *eventPerSec > 0 {
-				sleepTime := 1000.0 / *eventPerSec
-				duration = time.Duration(sleepTime) * time.Millisecond
-			} else {
-				// Randomise output between min and max
-				parsedMaxTime, err := time.ParseDuration(*maxIntervall)
-				if err != nil {
-					panic(err)
-				}
-				parsedMinTime, err := time.ParseDuration(*minIntervall)
-				if err != nil {
-					panic(err)
-				}
-				duration = time.Duration(rand.Int63n(int64((parsedMaxTime - parsedMinTime) + parsedMinTime)))
-			}
-			// Sleep before next flush
-			time.Sleep(duration)
-
-			// Increment counter
-			i++
-		}
-		done <- true
-	}()
+	//ticker := time.NewTicker()
 
 	go func() {
 		fmt.Println("metrics listen on: ", *metricsAddr)
@@ -159,12 +136,37 @@ func main() {
 		fmt.Println("main loop started")
 	}()
 
-	select {
-	case <-done:
-		return
-	case <-interrupt:
-		fmt.Println("Recieved interrupt")
-		return
+	var counter = 0
+	// Init ticker
+	var ticker *time.Ticker
+	if *eventPerSec > 0 {
+		ticker = TickerForEvent(*eventPerSec)
+	} else if *bytePerSec > 0 {
+		ticker = TickerForByte(*bytePerSec)
 	}
 
+	for {
+
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			var n LogGen
+			if *randomise {
+				n = NewNginxLogRandom()
+			} else {
+				n = NewNginxLog()
+			}
+			emitMessage(n)
+			counter++
+			// If we have count check counter
+			if *count > 0 && !(counter < *count) {
+				done <- true
+			}
+		case <-interrupt:
+			fmt.Println("Recieved interrupt")
+			return
+
+		}
+	}
 }
