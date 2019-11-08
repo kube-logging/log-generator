@@ -1,0 +1,22 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: log-generator
+spec:
+  selector:
+    matchLabels:
+      app: log-generator
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: log-generator
+    spec:
+      containers:
+      - name: log-generator
+        image: banzaicloud/log-generator:loki
+        imagePullPolicy: Always
+        command: ["/loggen"]
+        args: ["-loki-url=http://loki:password@gateway/api/prom/push","-min-intervall=1ns","-event-per-sec=100000","-max-intervall=2ns"]
+        ports:
+        - containerPort: 11000
