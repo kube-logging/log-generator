@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/lthibault/jitterbug"
 	wr "github.com/mroth/weightedrand"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -83,25 +84,26 @@ func (n NginxLog) String() (string, float64) {
 
 var (
 	eventEmitted = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "event_emitted_total",
+		Name: "loggen_events_total",
 		Help: "The total number of events",
 	})
 	eventEmittedBytes = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "event_emitted_total_bytes",
+		Name: "loggen_events_total_bytes",
 		Help: "The total number of events",
 	})
 )
 
-func TickerForByte(bandwith int) *time.Ticker {
+func TickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
 	_, length := NewNginxLog().String()
 	events := float64(1) / (float64(length) / float64(bandwith))
 	duration := float64(1000) / float64(events)
-	return time.NewTicker(time.Duration(duration) * time.Millisecond)
+	return jitterbug.New(time.Duration(duration)*time.Millisecond, j)
+
 }
 
-func TickerForEvent(events int) *time.Ticker {
+func TickerForEvent(events int, j jitterbug.Jitter) *jitterbug.Ticker {
 	duration := float64(1000) / float64(events)
-	return time.NewTicker(time.Duration(duration) * time.Millisecond)
+	return jitterbug.New(time.Duration(duration)*time.Millisecond, j)
 }
 
 func emitMessage(gen LogGen) {
@@ -117,7 +119,7 @@ func main() {
 	count := flag.Int("count", 0, "The amount of log message to emit.")
 	randomise := flag.Bool("randomise", true, "Randomise log content")
 	eventPerSec := flag.Int("event-per-sec", 2, "The amount of log message to emit/s")
-	bytePerSec := flag.Int("byte-per-sec", 20, "The amount of bytes to emit/s")
+	bytePerSec := flag.Int("byte-per-sec", 200, "The amount of bytes to emit/s")
 	metricsAddr := flag.String("metrics.addr", ":11000", "Metrics server listen address")
 
 	flag.Parse()
@@ -138,11 +140,17 @@ func main() {
 
 	var counter = 0
 	// Init ticker
-	var ticker *time.Ticker
+	var ticker *jitterbug.Ticker
+	var jitter jitterbug.Jitter
+
+	//jitter = &jitterbug.Norm{Stdev: time.Millisecond * 300}
+	// TODO find a way to set Jitter from params
+	jitter = &jitterbug.Norm{}
+
 	if *eventPerSec > 0 {
-		ticker = TickerForEvent(*eventPerSec)
+		ticker = TickerForEvent(*eventPerSec, jitter)
 	} else if *bytePerSec > 0 {
-		ticker = TickerForByte(*bytePerSec)
+		ticker = TickerForByte(*bytePerSec, jitter)
 	}
 
 	for {
