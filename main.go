@@ -92,6 +92,14 @@ var (
 		Name: "event_emitted_total_bytes",
 		Help: "The total number of events",
 	})
+	pushErrors = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "push_errors",
+		Help: "The total number of Loki push errors",
+	})
+	pushLatency = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name: "push_latency",
+		Help: "Latency of pushing a batch to Loki",
+	})
 )
 
 type Entry struct {
@@ -121,10 +129,21 @@ func send(url string, randomLabels int, entriesPerStream int, host string, debug
 		panic(err)
 	}
 
+	start := time.Now()
 	resp, err := http.Post(url, "application/json", bytes.NewReader(buf))
 	if err != nil {
 		fmt.Printf("failed to send %d entries: %v\n", len(entries), err)
-	} else if resp.StatusCode >= 300 || debug {
+		return
+	}
+
+	if resp.StatusCode >= 300 {
+		debug = true
+		pushErrors.Inc()
+	} else {
+		pushLatency.Observe(time.Since(start).Seconds())
+	}
+
+	if debug {
 		buf, _ := ioutil.ReadAll(resp.Body)
 		fmt.Printf("sent %d entries. response %s: %s\n", len(entries), resp.Status, buf)
 	}
