@@ -107,7 +107,7 @@ type Entry struct {
 	Line string
 }
 
-func send(url string, randomLabels int, entriesPerStream int, host string, debug bool, entries []Entry) {
+func send(url string, randomLabels int, entriesPerStream int, host string, debug bool, orgID int, entries []Entry) {
 	type stream struct {
 		Labels  string
 		Entries []Entry
@@ -130,7 +130,17 @@ func send(url string, randomLabels int, entriesPerStream int, host string, debug
 	}
 
 	start := time.Now()
-	resp, err := http.Post(url, "application/json", bytes.NewReader(buf))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(buf))
+	if err != nil {
+		fmt.Printf("failed to send %d entries: %v\n", len(entries), err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if orgID != 0 {
+		req.Header.Set("X-Scope-OrgID", fmt.Sprint(orgID))
+	}
+	resp, err := http.DefaultClient.Do(req)
+	//resp, err := http.Post(url, bytes.NewReader(buf))
 	if err != nil {
 		fmt.Printf("failed to send %d entries: %v\n", len(entries), err)
 		return
@@ -164,6 +174,7 @@ func main() {
 	lokiURL := flag.String("loki-url", "", "Loki endpoint to send logs to instead of stdout. Example: http://loki:password@localhost:8123/api/prom/push")
 	lokiBatch := flag.Int("loki-batch", 100, "Batch size of loki push requests")
 	lokiRandomLabel := flag.Int("loki-random", 10, "How much different 'fake' labels should be used as a label")
+	orgID := flag.Int("loki-org-id", 1, "Send fake org id to Loki")
 	debug := flag.Bool("debug", false, "Verbose output")
 	entriesPerStream := flag.Int("entries-per-stream", 10, "Average number of entries in each stream within a batch. (Implies number of streams per batch.)")
 
@@ -190,12 +201,12 @@ func main() {
 				}
 				queue = append(queue, entry)
 				if len(queue) >= *lokiBatch {
-					send(*lokiURL, *lokiRandomLabel, *entriesPerStream, host, *debug, queue)
+					send(*lokiURL, *lokiRandomLabel, *entriesPerStream, host, *debug, *orgID, queue)
 					queue = make([]Entry, 0, *lokiBatch)
 				}
 			}
 			if len(queue) > 0 {
-				send(*lokiURL, *lokiRandomLabel, *entriesPerStream, host, *debug, queue)
+				send(*lokiURL, *lokiRandomLabel, *entriesPerStream, host, *debug, *orgID, queue)
 			}
 		}
 		done <- true
