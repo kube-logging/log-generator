@@ -99,16 +99,21 @@ type Entry struct {
 	Line string
 }
 
-func send(url string, randomLabels int, host string, debug bool, entries []Entry) {
+func send(url string, randomLabels int, entriesPerStream int, host string, debug bool, entries []Entry) {
 	type stream struct {
 		Labels  string
 		Entries []Entry
 	}
 
-	payload := struct{ Streams []stream }{}
-	for _, entry := range entries {
+	payload := struct{ Streams []stream }{Streams: make([]stream, len(entries)/entriesPerStream)}
+	for i := range payload.Streams {
 		n := rand.Intn(randomLabels)
-		payload.Streams = append(payload.Streams, stream{Labels: fmt.Sprintf(`{application="my-test-application", type="events", fake="n%d", pod=%q}`, n, host), Entries: []Entry{entry}})
+		payload.Streams[i].Labels = fmt.Sprintf(`{application="my-test-application", type="events", fake="n%d", pod=%q}`, randomLabels*i+n, host)
+	}
+
+	for _, entry := range entries {
+		stream := rand.Intn(len(payload.Streams))
+		payload.Streams[stream].Entries = append(payload.Streams[stream].Entries, entry)
 	}
 
 	buf, err := json.Marshal(payload)
@@ -141,6 +146,7 @@ func main() {
 	lokiBatch := flag.Int("loki-batch", 100, "Batch size of loki push requests")
 	lokiRandomLabel := flag.Int("loki-random", 10, "How much different 'fake' labels should be used as a label")
 	debug := flag.Bool("debug", false, "Verbose output")
+	entriesPerStream := flag.Int("entries-per-stream", 10, "Average number of entries in each stream within a batch. (Implies number of streams per batch.)")
 
 	flag.Parse()
 
@@ -165,12 +171,12 @@ func main() {
 				}
 				queue = append(queue, entry)
 				if len(queue) >= *lokiBatch {
-					send(*lokiURL, *lokiRandomLabel, host, *debug, queue)
+					send(*lokiURL, *lokiRandomLabel, *entriesPerStream, host, *debug, queue)
 					queue = make([]Entry, 0, *lokiBatch)
 				}
 			}
 			if len(queue) > 0 {
-				send(*lokiURL, *lokiRandomLabel, host, *debug, queue)
+				send(*lokiURL, *lokiRandomLabel, *entriesPerStream, host, *debug, queue)
 			}
 		}
 		done <- true
