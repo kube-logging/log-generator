@@ -42,7 +42,7 @@ func NewNginxLog() NginxLog {
 		Remote:            "127.0.0.1",
 		Host:              "-",
 		User:              "-",
-		Time:              time.Time{},
+		Time:              time.Now(),
 		Method:            "GET",
 		Path:              "/loggen/loggen/loggen/loggen/loggen/loggen/loggen",
 		Code:              200,
@@ -116,7 +116,7 @@ func emitMessage(gen LogGen) {
 func main() {
 	//minIntervall := flag.String("min-intervall", "100ms", "Minimum interval between log messages")
 	//maxIntervall := flag.String("max-intervall", "1s", "Maximum interval between log messages")
-	count := flag.Int("count", 0, "The amount of log message to emit.")
+	count := flag.Int("count", 10, "The amount of log message to emit.")
 	randomise := flag.Bool("randomise", true, "Randomise log content")
 	eventPerSec := flag.Int("event-per-sec", 2, "The amount of log message to emit/s")
 	bytePerSec := flag.Int("byte-per-sec", 200, "The amount of bytes to emit/s")
@@ -127,7 +127,7 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	done := make(chan bool)
+	done := make(chan bool, 1)
 
 	//ticker := time.NewTicker()
 
@@ -135,7 +135,6 @@ func main() {
 		fmt.Println("metrics listen on: ", *metricsAddr)
 		http.Handle("/metrics", promhttp.Handler())
 		http.ListenAndServe(*metricsAddr, nil)
-		fmt.Println("main loop started")
 	}()
 
 	var counter = 0
@@ -154,7 +153,6 @@ func main() {
 	}
 
 	for {
-
 		select {
 		case <-done:
 			return
