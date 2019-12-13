@@ -6,7 +6,7 @@ replicaCount: 4
 
 image:
   repository: banzaicloud/log-generator
-  tag: 0.3.0
+  tag: 0.3.2
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -33,9 +33,11 @@ securityContext: {}
 
 app:
   # Minimum interval between log messages (ms) (Default: 100)
+  minInterval: 100
   # minInterval: 100
   # Maximum interval between log messages (s) (Default: 1)
-  # maxIntervall: 1
+  maxInterval: 1
+  # maxInterval: 1
   # The amount of log message to emit. (Default: 0)
   count: 0
   # Randomise log content (Default: true)
@@ -51,6 +53,9 @@ metrics:
   serviceMonitor:
     enabled: true
     additionalLabels: {}
+    namespace:
+    interval:
+    scrapeTimeout:
     # namespace: monitoring
     # interval: 30s
     # scrapeTimeout: 10s
