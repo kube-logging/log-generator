@@ -51,7 +51,7 @@ app:
 
 metrics:
   serviceMonitor:
-    enabled: true
+    enabled: false
     additionalLabels: {}
     namespace:
     interval:
