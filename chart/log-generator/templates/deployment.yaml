@@ -32,12 +32,12 @@ spec:
           command:
             - /loggen
           args:
-            {{- if .Values.app.minInterval }}
-            - --min-intervall={{ .Values.app.minInterval }}
-            {{- end }}
-            {{- if .Values.app.maxInterval }}
-            - --max-intervall={{ .Values.app.maxInterval }}
-            {{- end }}
+            # {{- if .Values.app.minInterval }}
+            # - --min-intervall={{ .Values.app.minInterval }}
+            # {{- end }}
+            # {{- if .Values.app.maxInterval }}
+            # - --max-intervall={{ .Values.app.maxInterval }}
+            # {{- end }}
             {{- if .Values.app.count }}
             - --count={{ .Values.app.count }}
             {{- end }}
