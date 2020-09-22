@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f9ea8ac3-b7bd-4b31-9252-b9702e979841" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/watcherTasks.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/formats/apache.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/configuration.go" beforeDir="false" afterPath="$PROJECT_DIR$/conf/configuration.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -41,13 +40,14 @@
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="ignore_missing_gitignore" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/formats" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="watcher.settings" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/formats" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/conf" />
     </key>
@@ -113,22 +113,22 @@
       <screen x="0" y="23" width="1680" height="1027" />
     </state>
     <state x="555" y="346" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1680.1027@0.23.1680.1027" timestamp="1600779192514" />
-    <state width="1638" height="229" key="GridCell.Tab.0.bottom" timestamp="1600785306332">
+    <state width="1638" height="229" key="GridCell.Tab.0.bottom" timestamp="1600787657466">
       <screen x="0" y="23" width="1680" height="1027" />
     </state>
-    <state width="1638" height="229" key="GridCell.Tab.0.bottom/0.23.1680.1027@0.23.1680.1027" timestamp="1600785306332" />
-    <state width="1638" height="229" key="GridCell.Tab.0.center" timestamp="1600785306331">
+    <state width="1638" height="229" key="GridCell.Tab.0.bottom/0.23.1680.1027@0.23.1680.1027" timestamp="1600787657466" />
+    <state width="1638" height="229" key="GridCell.Tab.0.center" timestamp="1600787657465">
       <screen x="0" y="23" width="1680" height="1027" />
     </state>
-    <state width="1638" height="229" key="GridCell.Tab.0.center/0.23.1680.1027@0.23.1680.1027" timestamp="1600785306331" />
-    <state width="1638" height="229" key="GridCell.Tab.0.left" timestamp="1600785306331">
+    <state width="1638" height="229" key="GridCell.Tab.0.center/0.23.1680.1027@0.23.1680.1027" timestamp="1600787657465" />
+    <state width="1638" height="229" key="GridCell.Tab.0.left" timestamp="1600787657465">
       <screen x="0" y="23" width="1680" height="1027" />
     </state>
-    <state width="1638" height="229" key="GridCell.Tab.0.left/0.23.1680.1027@0.23.1680.1027" timestamp="1600785306331" />
-    <state width="1638" height="229" key="GridCell.Tab.0.right" timestamp="1600785306331">
+    <state width="1638" height="229" key="GridCell.Tab.0.left/0.23.1680.1027@0.23.1680.1027" timestamp="1600787657465" />
+    <state width="1638" height="229" key="GridCell.Tab.0.right" timestamp="1600787657466">
       <screen x="0" y="23" width="1680" height="1027" />
     </state>
-    <state width="1638" height="229" key="GridCell.Tab.0.right/0.23.1680.1027@0.23.1680.1027" timestamp="1600785306331" />
+    <state width="1638" height="229" key="GridCell.Tab.0.right/0.23.1680.1027@0.23.1680.1027" timestamp="1600787657466" />
     <state x="341" y="175" key="SettingsEditor" timestamp="1600778829864">
       <screen x="0" y="23" width="1680" height="1027" />
     </state>

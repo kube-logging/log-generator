@@ -1,0 +1,22 @@
+[logging]
+#level = "debug"
+
+[message]
+# The amount of log message to emit. (default: 10)
+# count =
+
+# Randomise log content (default: true)
+# randomise =
+
+# The amount of log message to emit/s (default: 2)
+#event-per-sec =
+
+# The amount of bytes to emit/s (default: 200)
+#byte-per-sec =
+
+[metrics]
+# Metrics server listen address (default: "":11000")
+#addr =
+
+# Metrics Path (default: "/metrics")
+#path =
