@@ -1,22 +1,26 @@
 package formats
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	wr "github.com/mroth/weightedrand"
-)
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 
-const ApacheTimeFormat = "02/Jan/2006:15:04:05 -0700"
+	"text/template"
+
+	)
 
 
 type ApacheLog struct {
 	Remote            string
 	Host              string
 	User              string
-	Time              time.Time
+	Time              string
 	Method            string
 	Path              string
 	Code              int
@@ -32,7 +36,7 @@ func NewApacheLog() ApacheLog {
 		Remote:            "127.0.0.1",
 		Host:              "-",
 		User:              "-",
-		Time:              time.Now(),
+		Time:              "",
 		Method:            "GET",
 		Path:              "/loggen/loggen/loggen/loggen/loggen/loggen/loggen",
 		Code:              200,
@@ -57,7 +61,7 @@ func NewApacheLogRandom() ApacheLog {
 		Remote:            randomdata.IpV4Address(),
 		Host:              "-",
 		User:              "-",
-		Time:              time.Now(),
+		Time:              "",
 		Method:            randomdata.StringSample("GET", "POST", "PUT"),
 		Path:              randomdata.StringSample("/", "/blog", "/index.html", "/products"),
 		Code:              c.Pick().(int),
@@ -70,6 +74,19 @@ func NewApacheLogRandom() ApacheLog {
 
 
 func (n ApacheLog) String() (string, float64) {
-	message := fmt.Sprintf("%s %s %s [%s] \"%s %s HTTP/1.1\" %d %d %q %q %q", n.Remote, n.Host, n.User, n.Time.Format(ApacheTimeFormat), n.Method, n.Path, n.Code, n.Size, n.Referer, n.Agent, n.HttpXForwardedFor)
+	n.Time = time.Now().Format(viper.GetString("apache.time_format"))
+
+	t,err := template.New("line").Parse(viper.GetString("apache.output_format"))
+	if err != nil {
+		log.Error(err)
+		return "", 0
+	}
+	output := new(bytes.Buffer)
+	err = t.Execute(output, n)
+		if err != nil {
+		return "", 0
+	}
+	message := fmt.Sprint(output.String())
+
 	return message, float64(len([]byte(message)))
 }

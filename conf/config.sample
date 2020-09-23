@@ -2,7 +2,7 @@
 #level = "debug"
 
 [message]
-# The amount of log message to emit. (default: 10)
+# The amount of log message to emit. (default: 0)
 # count =
 
 # Randomise log content (default: true)
