@@ -9,7 +9,6 @@ workflows:
         jobs:
             -   helm/publish-chart:
                     context: helm
-                    chart-path: chart/log-generator
                     filters:
                         branches:
                             ignore: /.*/
