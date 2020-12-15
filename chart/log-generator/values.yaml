@@ -5,8 +5,8 @@
 replicaCount: 4
 
 image:
-  repository: banzaicloud/log-generator
-  tag: 0.3.2
+  repository: ghcr.io/banzaicloud/log-generator
+  tag: 0.3.3
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
