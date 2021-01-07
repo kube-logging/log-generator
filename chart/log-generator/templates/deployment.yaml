@@ -38,18 +38,14 @@ spec:
             # {{- if .Values.app.maxInterval }}
             # - --max-intervall={{ .Values.app.maxInterval }}
             # {{- end }}
-            {{- if .Values.app.count }}
             - --count={{ .Values.app.count }}
-            {{- end }}
             {{- if .Values.app.randomise }}
             - --randomise={{ .Values.app.randomise }}
             {{- end }}
             {{- if .Values.app.eventPerSec }}
             - --event-per-sec={{ .Values.app.eventPerSec }}
             {{- end }}
-            {{- if .Values.app.bytePerSec }}
             - --byte-per-sec={{ .Values.app.bytePerSec }}
-            {{- end }}
             {{- if .Values.app.metricsAddr }}
             - --metrics.addr=:{{ .Values.app.metricsAddr }}
             {{- end }}
