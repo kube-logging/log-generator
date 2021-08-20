@@ -1,0 +1,27 @@
+# Binaries for programs and plugins
+log-generator
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+client_secret.json
+/config/config.toml
+/bin/
+/build/
+/vendor/
+/.docker/
+
+vendor/*
+
+# IDE integration
+.idea
+.idea/*
+
+
+#Config 
+conf/config.toml
+
+#Others
+/.env
