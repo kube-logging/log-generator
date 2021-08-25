@@ -18,14 +18,12 @@ func Init() {
 	//log.SetFormatter(&log.TextFormatter{})
 	//fmt.Printf(">>>>>%s ",viper.GetString("logging.level"))
 	viper.SetDefault("logging.level", "info")
-	switch viper.GetString("logging.level") {
-	case "info":
-		log.SetLevel(log.InfoLevel)
-	case "debug":
-		log.SetLevel(log.DebugLevel)
-	default:
+
+	level, lErr := log.ParseLevel(viper.GetString("logging.level"))
+	if lErr != nil {
 		panic("unrecognized loglevel")
 	}
+	log.SetLevel(level)
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
@@ -42,7 +40,6 @@ func Init() {
 	viper.SetDefault("nginx.enabled", true)
 	viper.SetDefault("nginx.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] {{.User}} \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
 	viper.SetDefault("nginx.time_format", "02/Jan/2006:15:04:05 -0700")
-
 
 	viper.SetDefault("apache.enabled", true)
 	viper.SetDefault("apache.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] {{.User}} \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
