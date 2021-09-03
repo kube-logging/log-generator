@@ -49,7 +49,7 @@ func NewNginxLog() NginxLog {
 
 func NewNginxLogRandom() NginxLog {
 	rand.Seed(time.Now().UTC().UnixNano())
-	c := wr.NewChooser(
+	c, _ := wr.NewChooser(
 		wr.Choice{Item: 200, Weight: 7},
 		wr.Choice{Item: 404, Weight: 3},
 		wr.Choice{Item: 503, Weight: 1},

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"time"
 
 	"github.com/banzaicloud/log-generator/conf"
@@ -29,7 +30,7 @@ func init() {
 }
 
 type Memory struct {
-	Percentage   int64         `json:"percentage"`
+	Megabyte     int64         `json:"megabyte"`
 	Active       time.Time     `json:"active"`
 	Duration     time.Duration `json:"duration"`
 	LastModified time.Time     `json:"last_modified"`
@@ -100,12 +101,22 @@ func emitMessage(gen LogGen) {
 func (s *State) cpuGet(c *gin.Context) {
 	c.JSON(http.StatusOK, s.Cpu)
 }
-func (s *State) cpuSet(c *gin.Context) {
-	if err := c.ShouldBindJSON(s); err != nil {
+
+func (s *State) cpuSetCall(c *gin.Context) {
+	if err := c.ShouldBindJSON(&s.Cpu); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	err := s.cpuSet()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	}
+	c.JSON(http.StatusOK, s.Cpu)
+}
+
+func (s *State) cpuSet() error {
 	s.Cpu.LastModified = time.Now()
 	s.Cpu.Active = time.Now().Add(s.Cpu.Duration * time.Second)
 	go func() {
@@ -117,31 +128,47 @@ func (s *State) cpuSet(c *gin.Context) {
 		utils.RunCpuLoader(actuator)
 		log.Debugln("CPU load test done.")
 	}()
-	c.JSON(http.StatusOK, s.Cpu)
+	return nil
 }
 
 func (s *State) memoryGet(c *gin.Context) {
 	c.JSON(http.StatusOK, s.Memory)
 }
 
-func (s *State) memorySet(c *gin.Context) {
-	if err := c.ShouldBindJSON(s); err != nil {
+func (s *State) memorySetCall(c *gin.Context) {
+	if err := c.ShouldBindJSON(&s.Memory); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	err := s.memorySet()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	}
+	c.JSON(http.StatusOK, s.Memory)
+}
+
+func (s *State) memorySet() error {
 	s.Memory.LastModified = time.Now()
 	s.Memory.Active = time.Now().Add(s.Memory.Duration * time.Second)
 	go func() {
-		s := make([][]byte, 1000)
-		mb := 1024 * 1024
-		for i := 0; i < len(s); i++ {
-			s[i] = make([]byte, mb)
+		log.Debugln("MEM load test started.")
+
+		log.Debugln("%d", time.Now())
+		ballast := make([]byte, s.Memory.Megabyte<<20)
+		for i := 0; i < len(ballast); i++ {
+			ballast[i] = byte('A')
 		}
+		<-time.After(time.Duration(s.Memory.Duration * time.Second))
+		ballast = nil
+		//runtime.GC()
+		log.Debugln("%d", time.Now())
+
 		log.Debugln("MEM load test done.")
 	}()
-
-	c.JSON(http.StatusOK, s.Memory)
+	runtime.GC()
+	return nil
 }
 
 func (s *State) LogLevelGet(c *gin.Context) {
@@ -149,24 +176,60 @@ func (s *State) LogLevelGet(c *gin.Context) {
 	c.JSON(http.StatusOK, s.LogLevel)
 }
 
-func (s *State) LogLevelSet(c *gin.Context) {
-	if err := c.ShouldBindJSON(s); err != nil {
+func (s *State) LogLevelSet() error {
+	level, lErr := log.ParseLevel(s.LogLevel.Level)
+	if lErr != nil {
+		err := fmt.Errorf("%s valid logLeveles: panic fatal error warn warning info debug trace", lErr.Error())
+		log.Error(err)
+		return err
+	}
+	log.SetLevel(level)
+	log.Infof("New loglevel: %s", level)
+	s.LogLevel.LastModified = time.Now()
+	return nil
+}
+
+func (s *State) LogLevelSetCall(c *gin.Context) {
+	if err := c.ShouldBindJSON(&s.LogLevel); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	level, lErr := log.ParseLevel(s.LogLevel.Level)
-	if lErr != nil {
-		log.Error(lErr.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s valid logLeveles: panic fatal error warn warning info debug trace", lErr.Error())})
-		return
+	err := s.LogLevelSet()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 	}
-	log.SetLevel(level)
-	s.LogLevel.LastModified = time.Now()
 	c.JSON(http.StatusOK, s.LogLevel)
 }
 
-func (s *State) statusGet(c *gin.Context) {
+func (s *State) stateGet(c *gin.Context) {
+	c.JSON(http.StatusOK, s)
+}
+
+func (s *State) stateSet(c *gin.Context) {
+
+	var t State
+	if err := c.ShouldBindJSON(&t); err != nil {
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if t.Memory != (Memory{}) {
+		s.Memory = t.Memory
+		s.memorySet()
+	}
+
+	if t.Cpu != (Cpu{}) {
+		s.Cpu = t.Cpu
+		s.cpuSet()
+	}
+
+	if t.LogLevel != (LogLevel{}) {
+		s.LogLevel = t.LogLevel
+		s.LogLevelSet()
+	}
 	c.JSON(http.StatusOK, s)
 }
 
@@ -191,18 +254,18 @@ func main() {
 	go func() {
 		log.Debugf("metrics listen on: %s", metricsAddr)
 		r := gin.New()
-
 		r.GET("/", func(c *gin.Context) {
 			c.JSON(200, "/ - OK!")
 		})
 		r.GET(viper.GetString("metrics.path"), promHandler())
-		r.GET("memory", s.memoryGet)
-		r.PATCH("memory", s.memorySet)
-		r.GET("cpu", s.cpuGet)
-		r.PATCH("cpu", s.cpuSet)
-		r.GET("log_level", s.LogLevelGet)
-		r.PATCH("log_level", s.LogLevelSet)
-		r.GET("status", s.statusGet)
+		r.GET("state", s.stateGet)
+		r.PATCH("state", s.stateSet)
+		r.GET("state/memory", s.memoryGet)
+		r.PATCH("state/memory", s.memorySetCall)
+		r.GET("state/cpu", s.cpuGet)
+		r.PATCH("state/cpu", s.cpuSetCall)
+		r.GET("state/log_level", s.LogLevelGet)
+		r.PATCH("state/log_level", s.LogLevelSetCall)
 		r.GET("exceptions/go", exceptionsGoCall)
 		r.PATCH("exceptions/go", exceptionsGoCall)
 
