@@ -135,7 +135,7 @@ func (s *State) memoryGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.Memory)
 }
 
-func (s *State) memorySetCall(c *gin.Context) {
+func (s *State) memoryPatchHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&s.Memory); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
