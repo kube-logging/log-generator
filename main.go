@@ -207,7 +207,7 @@ func (s *State) stateGet(c *gin.Context) {
 	c.JSON(http.StatusOK, s)
 }
 
-func (s *State) stateSet(c *gin.Context) {
+func (s *State) statePatchHandler(c *gin.Context) {
 
 	var t State
 	if err := c.ShouldBindJSON(&t); err != nil {
