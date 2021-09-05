@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/banzaicloud/log-generator/conf"
@@ -30,13 +31,15 @@ func init() {
 }
 
 type Memory struct {
-	Megabyte     int64         `json:"megabyte"`
-	Active       time.Time     `json:"active"`
-	Duration     time.Duration `json:"duration"`
-	LastModified time.Time     `json:"last_modified"`
+	Megabyte     int64          `json:"megabyte"`
+	Active       time.Time      `json:"active"`
+	Duration     time.Duration  `json:"duration"`
+	LastModified time.Time      `json:"last_modified"`
+	mutex        sync.Mutex     `json:"_"`
+	wg           sync.WaitGroup `json:"_"`
 }
 
-type Cpu struct {
+type CPU struct {
 	Load         float64       `json:"load"`
 	Duration     time.Duration `json:"duration"`
 	Active       time.Time     `json:"active"`
@@ -51,7 +54,7 @@ type LogLevel struct {
 
 type State struct {
 	Memory   Memory   `json:"memory"`
-	Cpu      Cpu      `json:"cpu"`
+	Cpu      CPU      `json:"cpu"`
 	LogLevel LogLevel `json:"log_level"`
 }
 
@@ -119,16 +122,18 @@ func (s *State) cpuPatchHandler(c *gin.Context) {
 func (s *State) cpuSet() error {
 	s.Cpu.LastModified = time.Now()
 	s.Cpu.Active = time.Now().Add(s.Cpu.Duration * time.Second)
-	go func() {
-		log.Debugf("CPU load test started, duration: %s", s.Cpu.Duration.String())
-		sampleInterval := 100 * time.Millisecond
-		controller := utils.NewCpuLoadController(sampleInterval, s.Cpu.Load)
-		monitor := utils.NewCpuLoadMonitor(s.Cpu.Core, sampleInterval)
-		actuator := utils.NewCpuLoadGenerator(controller, monitor, s.Cpu.Duration)
-		utils.RunCpuLoader(actuator)
-		log.Debugln("CPU load test done.")
-	}()
+	go s.Cpu.cpuLoad()
 	return nil
+}
+
+func (c CPU) cpuLoad() {
+	log.Debugf("CPU load test started, duration: %s", c.Duration.String())
+	sampleInterval := 100 * time.Millisecond
+	controller := utils.NewCpuLoadController(sampleInterval, c.Load)
+	monitor := utils.NewCpuLoadMonitor(c.Core, sampleInterval)
+	actuator := utils.NewCpuLoadGenerator(controller, monitor, c.Duration)
+	utils.RunCpuLoader(actuator)
+	log.Debugln("CPU load test done.")
 }
 
 func (s *State) memoryGetHandler(c *gin.Context) {
@@ -150,25 +155,26 @@ func (s *State) memoryPatchHandler(c *gin.Context) {
 }
 
 func (s *State) memorySet() error {
+	s.Memory.wg.Add(1)
 	s.Memory.LastModified = time.Now()
 	s.Memory.Active = time.Now().Add(s.Memory.Duration * time.Second)
-	go func() {
-		log.Debugln("MEM load test started.")
-
-		log.Debugln("%d", time.Now())
-		ballast := make([]byte, s.Memory.Megabyte<<20)
-		for i := 0; i < len(ballast); i++ {
-			ballast[i] = byte('A')
-		}
-		<-time.After(time.Duration(s.Memory.Duration * time.Second))
-		ballast = nil
-		//runtime.GC()
-		log.Debugln("%d", time.Now())
-
-		log.Debugln("MEM load test done.")
-	}()
-	runtime.GC()
+	go s.Memory.memoryBallast()
 	return nil
+}
+
+func (m *Memory) memoryBallast() {
+	m.mutex.Lock()
+	log.Debugf("MEM load test started. - %s", time.Now().String())
+	ballast := make([]byte, m.Megabyte<<20)
+	for i := 0; i < len(ballast); i++ {
+		ballast[i] = byte('A')
+	}
+	<-time.After(m.Duration * time.Second)
+	ballast = nil
+	runtime.GC()
+	log.Debugf("MEM load test done.- %s", time.Now().String())
+	m.mutex.Unlock()
+	m.wg.Done()
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
@@ -195,7 +201,7 @@ func (s *State) logLevelPatchHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := s.LogLevelSet()
+	err := s.logLevelSet()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 
@@ -221,14 +227,14 @@ func (s *State) statePatchHandler(c *gin.Context) {
 		s.memorySet()
 	}
 
-	if t.Cpu != (Cpu{}) {
+	if t.Cpu != (CPU{}) {
 		s.Cpu = t.Cpu
 		s.cpuSet()
 	}
 
 	if t.LogLevel != (LogLevel{}) {
 		s.LogLevel = t.LogLevel
-		s.LogLevelSet()
+		s.logLevelSet()
 	}
 	c.JSON(http.StatusOK, s)
 }
@@ -258,18 +264,19 @@ func main() {
 			c.JSON(200, "/ - OK!")
 		})
 		r.GET(viper.GetString("metrics.path"), promHandler())
-		r.GET("state", s.stateGet)
-		r.PATCH("state", s.stateSet)
-		r.GET("state/memory", s.memoryGet)
-		r.PATCH("state/memory", s.memorySetCall)
-		r.GET("state/cpu", s.cpuGet)
-		r.PATCH("state/cpu", s.cpuSetCall)
-		r.GET("state/log_level", s.LogLevelGet)
-		r.PATCH("state/log_level", s.LogLevelSetCall)
+		r.GET("state", s.stateGetHandler)
+		r.PATCH("state", s.statePatchHandler)
+		r.GET("state/memory", s.memoryGetHandler)
+		r.PATCH("state/memory", s.memoryPatchHandler)
+		r.GET("state/cpu", s.cpuGetHandler)
+		r.PATCH("state/cpu", s.cpuPatchHandler)
+		r.GET("state/log_level", s.logLevelGetHandler)
+		r.PATCH("state/log_level", s.logLevelPatchHandler)
 		r.GET("exceptions/go", exceptionsGoCall)
 		r.PATCH("exceptions/go", exceptionsGoCall)
 
 		r.Run(metricsAddr)
+		s.Memory.wg.Wait()
 	}()
 
 	var counter = 0
