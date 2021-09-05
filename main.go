@@ -176,7 +176,7 @@ func (s *State) logLevelGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.LogLevel)
 }
 
-func (s *State) LogLevelSet() error {
+func (s *State) logLevelSet() error {
 	level, lErr := log.ParseLevel(s.LogLevel.Level)
 	if lErr != nil {
 		err := fmt.Errorf("%s valid logLeveles: panic fatal error warn warning info debug trace", lErr.Error())
