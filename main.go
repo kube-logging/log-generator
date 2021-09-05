@@ -102,7 +102,7 @@ func (s *State) cpuGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.Cpu)
 }
 
-func (s *State) cpuSetCall(c *gin.Context) {
+func (s *State) cpuPatchHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&s.Cpu); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
