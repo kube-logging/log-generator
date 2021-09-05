@@ -98,7 +98,7 @@ func emitMessage(gen LogGen) {
 	eventEmittedBytes.Add(size)
 }
 
-func (s *State) cpuGet(c *gin.Context) {
+func (s *State) cpuGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.Cpu)
 }
 
