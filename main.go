@@ -203,7 +203,7 @@ func (s *State) logLevelPatchHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.LogLevel)
 }
 
-func (s *State) stateGet(c *gin.Context) {
+func (s *State) stateGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s)
 }
 
