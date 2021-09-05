@@ -171,7 +171,7 @@ func (s *State) memorySet() error {
 	return nil
 }
 
-func (s *State) LogLevelGet(c *gin.Context) {
+func (s *State) logLevelGetHandler(c *gin.Context) {
 	s.LogLevel.Level = log.GetLevel().String()
 	c.JSON(http.StatusOK, s.LogLevel)
 }
