@@ -189,7 +189,7 @@ func (s *State) LogLevelSet() error {
 	return nil
 }
 
-func (s *State) LogLevelSetCall(c *gin.Context) {
+func (s *State) logLevelPatchHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&s.LogLevel); err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
