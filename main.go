@@ -131,7 +131,7 @@ func (s *State) cpuSet() error {
 	return nil
 }
 
-func (s *State) memoryGet(c *gin.Context) {
+func (s *State) memoryGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.Memory)
 }
 
