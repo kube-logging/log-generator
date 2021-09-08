@@ -1,0 +1,21 @@
+approved = [
+  "mit",
+  "apache-2.0",
+  "bsd-3-clause",
+  "bsd-2-clause",
+  "mpl-2.0",
+]
+
+ignored = [
+  # Unsupported VCS
+  "cloud.google.com/go",
+  "cloud.google.com/go/storage",
+  "google.golang.org/api",
+  "google.golang.org/protobuf",
+]
+
+[header]
+ignorePaths = ["vendor", ".gen", "plz-out"]
+ignoreFiles = ["mock_*.go", "*_gen.go", "zz_generated.*.go", "generated.go"]
+template = """// Copyright (c) :YEAR: Cisco All Rights Reserved.
+"""

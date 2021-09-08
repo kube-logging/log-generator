@@ -25,3 +25,5 @@ conf/config.toml
 
 #Others
 /.env
+
+.licensei.cache

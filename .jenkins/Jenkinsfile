@@ -45,6 +45,27 @@ pipeline {
       }
     }
 
+    stage('Test') {
+      steps {
+        withCredentials([string(credentialsId: 'licensei-github-token', variable: 'GITHUB_TOKEN')]) {
+          withEnv(["GITHUB_TOKEN="+GITHUB_TOKEN]) {
+            script {
+              sreUtils.figlet('Test')
+              sreUtils.runUnitTest(banzaiParams)
+            }
+          }
+        }
+      }
+    }
+    stage ('CACHE SAVE') {
+      when { expression { !banzaiParams.disableCache } }
+      steps {
+        script {
+          sreCache.save( banzaiParams, (banzaiParams.caches ?: [:]).prefix ?: "")
+        }
+      }
+    }
+
     stage('Docker') {
       when {
         not {
