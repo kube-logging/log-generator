@@ -1,17 +1,18 @@
+// Copyright (c) 2021 Cisco All Rights Reserved.
+
 package formats
 
 import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"text/template"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	wr "github.com/mroth/weightedrand"
-	"github.com/spf13/viper"
-		"text/template"
 	log "github.com/sirupsen/logrus"
-
+	"github.com/spf13/viper"
 )
 
 type NginxLog struct {
