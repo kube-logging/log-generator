@@ -163,7 +163,11 @@ func (s *State) memorySet() error {
 }
 
 func (m *Memory) memoryBallast() {
+	m.wg.Add(1)
+	defer m.wg.Done()	
 	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	
 	log.Debugf("MEM load test started. - %s", time.Now().String())
 	ballast := make([]byte, m.Megabyte<<20)
 	for i := 0; i < len(ballast); i++ {
@@ -173,8 +177,6 @@ func (m *Memory) memoryBallast() {
 	ballast = nil
 	runtime.GC()
 	log.Debugf("MEM load test done.- %s", time.Now().String())
-	m.mutex.Unlock()
-	m.wg.Done()
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
