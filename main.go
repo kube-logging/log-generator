@@ -155,7 +155,6 @@ func (s *State) memoryPatchHandler(c *gin.Context) {
 }
 
 func (s *State) memorySet() error {
-	s.Memory.wg.Add(1)
 	s.Memory.LastModified = time.Now()
 	s.Memory.Active = time.Now().Add(s.Memory.Duration * time.Second)
 	go s.Memory.memoryBallast()
