@@ -31,30 +31,20 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - /loggen
-          args:
-            # {{- if .Values.app.minInterval }}
-            # - --min-intervall={{ .Values.app.minInterval }}
-            # {{- end }}
-            # {{- if .Values.app.maxInterval }}
-            # - --max-intervall={{ .Values.app.maxInterval }}
-            # {{- end }}
-            - --count={{ .Values.app.count }}
-            {{- if .Values.app.randomise }}
-            - --randomise={{ .Values.app.randomise }}
-            {{- end }}
-            {{- if .Values.app.eventPerSec }}
-            - --event-per-sec={{ .Values.app.eventPerSec }}
-            {{- end }}
-            - --byte-per-sec={{ .Values.app.bytePerSec }}
-            {{- if .Values.app.metricsAddr }}
-            - --metrics.addr=:{{ .Values.app.metricsAddr }}
-            {{- end }}
           ports:
-            - name: metrics
-              containerPort: {{ .Values.app.metricsAddr }}
+            - name: api
+              containerPort: {{ .Values.api.addr }}
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: config
+            mountPath: /conf/config.toml
+            subPath: config.toml
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "log-generator.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

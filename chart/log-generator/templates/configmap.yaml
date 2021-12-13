@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "log-generator.fullname" . }}
+data:
+  config.toml: |-
+    [logging]
+    level = "debug"
+
+    [message]
+    # The amount of log message to emit. (default: 0)
+    count = {{ .Values.app.count }}
+
+    # Randomise log content (default: true)
+    randomise = {{ .Values.app.randomise }}
+
+    # The amount of log message to emit/s (default: 4)
+    event-per-sec = {{ .Values.app.eventPerSec }}
+
+    # The amount of bytes to emit/s (default: 0)
+    byte-per-sec = {{ .Values.app.bytePerSec }}
+
+    [api]
+    # Metrics server listen address (default: ":11000")
+    addr = ":{{ .Values.api.addr }}"
+    basePath = "{{ .Values.api.basePath }}"
+
+    [golang]
+    enabled = {{ .Values.app.golang }}
+
+    [nginx]
+    enabled = {{ .Values.app.nginx }}
+
+    [apache]
+    enabled = {{ .Values.app.apache }}
+
+

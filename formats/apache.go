@@ -11,6 +11,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	wr "github.com/mroth/weightedrand"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -89,4 +90,12 @@ func (n ApacheLog) String() (string, float64) {
 	message := fmt.Sprint(output.String())
 
 	return message, float64(len([]byte(message)))
+}
+
+
+func (a ApacheLog) Labels() (prometheus.Labels) {
+	return prometheus.Labels{
+		"type":"apache",
+		"severity": fmt.Sprintf("%d",a.Code),
+	}
 }

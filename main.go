@@ -53,13 +53,15 @@ type LogLevel struct {
 }
 
 type State struct {
-	Memory   Memory   `json:"memory"`
-	Cpu      CPU      `json:"cpu"`
-	LogLevel LogLevel `json:"log_level"`
+	Memory    Memory                     `json:"memory"`
+	Cpu       CPU                        `json:"cpu"`
+	LogLevel  LogLevel                   `json:"log_level"`
+	GolangLog formats.GolangLogIntensity `json:"golang_log"`
 }
 
 type LogGen interface {
 	String() (string, float64)
+	Labels() prometheus.Labels
 }
 
 func promHandler() gin.HandlerFunc {
@@ -70,15 +72,34 @@ func promHandler() gin.HandlerFunc {
 	}
 }
 
+var startup time.Time
+
 var (
-	eventEmitted = promauto.NewCounter(prometheus.CounterOpts{
+	eventEmitted = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "loggen_events_total",
 		Help: "The total number of events",
-	})
-	eventEmittedBytes = promauto.NewCounter(prometheus.CounterOpts{
+	},
+		[]string{"type", "severity"})
+
+	eventEmittedBytes = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "loggen_events_total_bytes",
 		Help: "The total number of events",
-	})
+	},
+		[]string{"type", "severity"})
+	generatedLoad = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "generated_load",
+		Help: "Generated load",
+	},
+		[]string{"type"})
+
+	uptime = promauto.NewCounterFunc(
+		prometheus.CounterOpts{
+			Name: "uptime_seconds",
+			Help: "Generator uptime.",
+		}, func() float64 {
+			return time.Now().Sub(startup).Seconds()
+		},
+	)
 )
 
 func TickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
@@ -97,8 +118,8 @@ func TickerForEvent(events int, j jitterbug.Jitter) *jitterbug.Ticker {
 func emitMessage(gen LogGen) {
 	msg, size := gen.String()
 	fmt.Println(msg)
-	eventEmitted.Inc()
-	eventEmittedBytes.Add(size)
+	eventEmitted.With(gen.Labels()).Inc()
+	eventEmittedBytes.With(gen.Labels()).Add(size)
 }
 
 func (s *State) cpuGetHandler(c *gin.Context) {
@@ -132,7 +153,9 @@ func (c CPU) cpuLoad() {
 	controller := utils.NewCpuLoadController(sampleInterval, c.Load)
 	monitor := utils.NewCpuLoadMonitor(c.Core, sampleInterval)
 	actuator := utils.NewCpuLoadGenerator(controller, monitor, c.Duration)
+	generatedLoad.WithLabelValues("cpu").Add(float64(c.Load))
 	utils.RunCpuLoader(actuator)
+	generatedLoad.DeleteLabelValues("cpu")
 	log.Debugln("CPU load test done.")
 }
 
@@ -163,24 +186,62 @@ func (s *State) memorySet() error {
 
 func (m *Memory) memoryBallast() {
 	m.wg.Add(1)
-	defer m.wg.Done()	
+	defer m.wg.Done()
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	log.Debugf("MEM load test started. - %s", time.Now().String())
 	ballast := make([]byte, m.Megabyte<<20)
+	generatedLoad.WithLabelValues("memory").Add(float64(m.Megabyte))
 	for i := 0; i < len(ballast); i++ {
 		ballast[i] = byte('A')
 	}
 	<-time.After(m.Duration * time.Second)
 	ballast = nil
 	runtime.GC()
+	generatedLoad.DeleteLabelValues("memory")
 	log.Debugf("MEM load test done.- %s", time.Now().String())
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
 	s.LogLevel.Level = log.GetLevel().String()
 	c.JSON(http.StatusOK, s.LogLevel)
+}
+
+func (s *State) golangGetHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, s.GolangLog)
+}
+
+func (s *State) golangPatchHandler(c *gin.Context) {
+	if err := c.ShouldBindJSON(&s.GolangLog); err != nil {
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	s.golangSet()
+	c.JSON(http.StatusOK, s.GolangLog)
+}
+
+func uintPtr(u uint) *uint {
+	return &u
+}
+
+func (s *State) golangSet() error {
+	if s.GolangLog.ErrorWeight == nil {
+		s.GolangLog.ErrorWeight = uintPtr(viper.GetUint("golang.weight.error"))
+	}
+	if s.GolangLog.WarningWeight == nil {
+		s.GolangLog.WarningWeight = uintPtr(viper.GetUint("golang.weight.warning"))
+	}
+	if s.GolangLog.InfoWeight == nil {
+		s.GolangLog.InfoWeight = uintPtr(viper.GetUint("golang.weight.info"))
+	}
+	if s.GolangLog.DebugWeight == nil {
+		s.GolangLog.DebugWeight = uintPtr(viper.GetUint("golang.weight.debug"))
+	}
+
+	return nil
 }
 
 func (s *State) logLevelSet() error {
@@ -246,7 +307,10 @@ func exceptionsGoCall(c *gin.Context) {
 }
 
 func main() {
-	metricsAddr := viper.GetString("metrics.addr")
+	startup = time.Now()
+
+	apiAddr := viper.GetString("api.addr")
+	apiBasePath := viper.GetString("api.basePath")
 
 	flag.Parse()
 
@@ -259,24 +323,27 @@ func main() {
 	var s State
 
 	go func() {
-		log.Debugf("metrics listen on: %s", metricsAddr)
+		log.Debugf("api listen on: %s, basePath: %s", apiAddr,apiBasePath)
 		r := gin.New()
-		r.GET("/", func(c *gin.Context) {
+		api := r.Group(apiBasePath)
+		api.GET("/", func(c *gin.Context) {
 			c.JSON(200, "/ - OK!")
 		})
-		r.GET(viper.GetString("metrics.path"), promHandler())
-		r.GET("state", s.stateGetHandler)
-		r.PATCH("state", s.statePatchHandler)
-		r.GET("state/memory", s.memoryGetHandler)
-		r.PATCH("state/memory", s.memoryPatchHandler)
-		r.GET("state/cpu", s.cpuGetHandler)
-		r.PATCH("state/cpu", s.cpuPatchHandler)
-		r.GET("state/log_level", s.logLevelGetHandler)
-		r.PATCH("state/log_level", s.logLevelPatchHandler)
-		r.GET("exceptions/go", exceptionsGoCall)
-		r.PATCH("exceptions/go", exceptionsGoCall)
+		api.GET("metrics", promHandler())
+		api.GET("state", s.stateGetHandler)
+		api.PATCH("state", s.statePatchHandler)
+		api.GET("state/memory", s.memoryGetHandler)
+		api.PATCH("state/memory", s.memoryPatchHandler)
+		api.GET("state/cpu", s.cpuGetHandler)
+		api.PATCH("state/cpu", s.cpuPatchHandler)
+		api.GET("state/log", s.logLevelGetHandler)
+		api.PATCH("state/log", s.logLevelPatchHandler)
+		api.GET("state/golang", s.golangGetHandler)
+		api.PATCH("state/golang", s.golangPatchHandler)
+		api.GET("exceptions/go", exceptionsGoCall)
+		api.PATCH("exceptions/go", exceptionsGoCall)
 
-		r.Run(metricsAddr)
+		r.Run(apiAddr)
 		s.Memory.wg.Wait()
 	}()
 
@@ -298,6 +365,7 @@ func main() {
 		ticker = TickerForByte(bytePerSec, jitter)
 	}
 	count := viper.GetInt("message.count")
+	s.golangSet()
 
 	for {
 		select {
@@ -311,6 +379,11 @@ func main() {
 				} else {
 					n = formats.NewNginxLog()
 				}
+				emitMessage(n)
+				counter++
+			}
+			if viper.GetBool("golang.enabled") {
+				n = formats.NewGolangLogRandom(s.GolangLog)
 				emitMessage(n)
 				counter++
 			}

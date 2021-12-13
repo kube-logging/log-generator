@@ -11,6 +11,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	wr "github.com/mroth/weightedrand"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -29,7 +30,6 @@ type NginxLog struct {
 	HttpXForwardedFor string
 }
 
-
 func NewNginxLog() NginxLog {
 	return NginxLog{
 		Remote:            "127.0.0.1",
@@ -45,7 +45,6 @@ func NewNginxLog() NginxLog {
 		HttpXForwardedFor: "-",
 	}
 }
-
 
 func NewNginxLogRandom() NginxLog {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -71,21 +70,27 @@ func NewNginxLogRandom() NginxLog {
 	}
 }
 
-
 func (n NginxLog) String() (string, float64) {
 	n.Time = time.Now().Format(viper.GetString("nginx.time_format"))
 
-	t,err := template.New("line").Parse(viper.GetString("nginx.output_format"))
+	t, err := template.New("line").Parse(viper.GetString("nginx.output_format"))
 	if err != nil {
 		log.Error(err)
 		return "", 0
 	}
 	output := new(bytes.Buffer)
 	err = t.Execute(output, n)
-		if err != nil {
+	if err != nil {
 		return "", 0
 	}
 	message := fmt.Sprint(output.String())
 
 	return message, float64(len([]byte(message)))
+}
+
+func (n NginxLog) Labels() prometheus.Labels {
+	return prometheus.Labels{
+		"type":     "nginx",
+		"severity": fmt.Sprintf("%d", n.Code),
+	}
 }

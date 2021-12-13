@@ -14,9 +14,8 @@
 # The amount of bytes to emit/s (default: 200)
 #byte-per-sec =
 
-[metrics]
+[api]
 # Metrics server listen address (default: "":11000")
 #addr =
-
-# Metrics Path (default: "/metrics")
-#path =
+(default: "/")
+#basePath =

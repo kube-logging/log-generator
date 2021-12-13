@@ -6,6 +6,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/dhoomakethu/stress v0.0.0-20210419083025-aaf0fe4f03ce
 	github.com/gin-gonic/gin v1.7.4
+	github.com/imdario/mergo v0.3.12
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/mroth/weightedrand v0.4.1
 	github.com/prometheus/client_golang v1.11.0

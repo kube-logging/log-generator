@@ -15,8 +15,6 @@ func Init() {
 	viper.SetConfigName("config")
 	viper.ReadInConfig()
 
-	//log.SetFormatter(&log.TextFormatter{})
-	//fmt.Printf(">>>>>%s ",viper.GetString("logging.level"))
 	viper.SetDefault("logging.level", "info")
 
 	level, lErr := log.ParseLevel(viper.GetString("logging.level"))
@@ -26,7 +24,7 @@ func Init() {
 	log.SetLevel(level)
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		log.Warnf("Error reading config file, %s", err)
 	}
 	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
 	viper.SetDefault("message.count", 0)
@@ -34,14 +32,22 @@ func Init() {
 	viper.SetDefault("message.event-per-sec", 2)
 	viper.SetDefault("message.byte-per-sec", 200)
 
-	viper.SetDefault("metrics.addr", ":11000")
-	viper.SetDefault("metrics.path", "/metrics")
+	viper.SetDefault("api.addr", ":11000")
+	viper.SetDefault("api.basePath", "/")
 
-	viper.SetDefault("nginx.enabled", true)
-	viper.SetDefault("nginx.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] {{.User}} \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
+	viper.SetDefault("nginx.enabled", false)
+	viper.SetDefault("nginx.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
 	viper.SetDefault("nginx.time_format", "02/Jan/2006:15:04:05 -0700")
 
-	viper.SetDefault("apache.enabled", true)
+	viper.SetDefault("apache.enabled", false)
 	viper.SetDefault("apache.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] {{.User}} \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
 	viper.SetDefault("apache.time_format", "02/Jan/2006:15:04:05 -0700")
+
+	viper.SetDefault("golang.enabled", false)
+	viper.SetDefault("golang.output_format", "{{.Environment}} {{.Application}} {{.Component}} [{{.Time}}] {{.Level}} \"{{.MSG}}\"")
+	viper.SetDefault("golang.time_format", "02/Jan/2006:15:04:05 -0700")
+	viper.SetDefault("golang.weight.error", 0)
+	viper.SetDefault("golang.weight.info", 1)
+	viper.SetDefault("golang.weight.warning", 0)
+	viper.SetDefault("golang.weight.debug", 0)
 }
