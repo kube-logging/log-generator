@@ -6,11 +6,10 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/dhoomakethu/stress v0.0.0-20210419083025-aaf0fe4f03ce
 	github.com/gin-gonic/gin v1.7.4
-	github.com/imdario/mergo v0.3.12
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/mroth/weightedrand v0.4.1
 	github.com/prometheus/client_golang v1.11.0
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.8.1
 )
 
@@ -48,7 +47,7 @@ require (
 	github.com/tklauser/numcpus v0.2.2 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40 // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
