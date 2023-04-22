@@ -82,7 +82,7 @@ func (s *State) statePatchHandler(c *gin.Context) {
 	}
 
 	if t.Memory != (stress.Memory{}) {
-		s.Memory = t.Memory
+		s.Memory.CopyFrom(&t.Memory)
 		s.Memory.Stress()
 	}
 

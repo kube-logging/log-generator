@@ -18,8 +18,15 @@ type Memory struct {
 	Active       time.Time      `json:"active"`
 	Duration     time.Duration  `json:"duration"`
 	LastModified time.Time      `json:"last_modified"`
-	mutex        sync.Mutex     `json:"_"`
-	wg           sync.WaitGroup `json:"_"`
+	mutex        sync.Mutex     `json:"-"`
+	wg           sync.WaitGroup `json:"-"`
+}
+
+func (m *Memory) CopyFrom(s *Memory) {
+	m.Megabyte = s.Megabyte
+	m.Active = s.Active
+	m.Duration = s.Duration
+	m.LastModified = s.LastModified
 }
 
 func (m *Memory) GetHandler(ctx *gin.Context) {
