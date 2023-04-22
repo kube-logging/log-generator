@@ -46,7 +46,7 @@ func (c *CPU) Stress() error {
 }
 
 func (c CPU) cpuLoad() {
-	log.Debugf("CPU load test started, duration: %s", c.Duration.String())
+	log.Debugf("CPU load test started, duration: %s", (c.Duration * time.Second).String())
 	sampleInterval := 100 * time.Millisecond
 	controller := utils.NewCpuLoadController(sampleInterval, c.Load)
 	monitor := utils.NewCpuLoadMonitor(c.Core, sampleInterval)
