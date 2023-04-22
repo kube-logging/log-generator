@@ -14,12 +14,11 @@ import (
 
 	"github.com/banzaicloud/log-generator/conf"
 	"github.com/banzaicloud/log-generator/formats"
+	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/dhoomakethu/stress/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -64,44 +63,6 @@ type LogGen interface {
 	Labels() prometheus.Labels
 }
 
-func promHandler() gin.HandlerFunc {
-	h := promhttp.Handler()
-
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
-var startup time.Time
-
-var (
-	eventEmitted = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "loggen_events_total",
-		Help: "The total number of events",
-	},
-		[]string{"type", "severity"})
-
-	eventEmittedBytes = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "loggen_events_total_bytes",
-		Help: "The total number of events",
-	},
-		[]string{"type", "severity"})
-	generatedLoad = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "generated_load",
-		Help: "Generated load",
-	},
-		[]string{"type"})
-
-	uptime = promauto.NewCounterFunc(
-		prometheus.CounterOpts{
-			Name: "uptime_seconds",
-			Help: "Generator uptime.",
-		}, func() float64 {
-			return time.Now().Sub(startup).Seconds()
-		},
-	)
-)
-
 func TickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
 	_, length := formats.NewNginxLog().String()
 	events := float64(1) / (float64(length) / float64(bandwith))
@@ -118,8 +79,8 @@ func TickerForEvent(events int, j jitterbug.Jitter) *jitterbug.Ticker {
 func emitMessage(gen LogGen) {
 	msg, size := gen.String()
 	fmt.Println(msg)
-	eventEmitted.With(gen.Labels()).Inc()
-	eventEmittedBytes.With(gen.Labels()).Add(size)
+	metrics.EventEmitted.With(gen.Labels()).Inc()
+	metrics.EventEmittedBytes.With(gen.Labels()).Add(size)
 }
 
 func (s *State) cpuGetHandler(c *gin.Context) {
@@ -153,9 +114,9 @@ func (c CPU) cpuLoad() {
 	controller := utils.NewCpuLoadController(sampleInterval, c.Load)
 	monitor := utils.NewCpuLoadMonitor(c.Core, sampleInterval)
 	actuator := utils.NewCpuLoadGenerator(controller, monitor, c.Duration)
-	generatedLoad.WithLabelValues("cpu").Add(float64(c.Load))
+	metrics.GeneratedLoad.WithLabelValues("cpu").Add(float64(c.Load))
 	utils.RunCpuLoader(actuator)
-	generatedLoad.DeleteLabelValues("cpu")
+	metrics.GeneratedLoad.DeleteLabelValues("cpu")
 	log.Debugln("CPU load test done.")
 }
 
@@ -192,14 +153,14 @@ func (m *Memory) memoryBallast() {
 
 	log.Debugf("MEM load test started. - %s", time.Now().String())
 	ballast := make([]byte, m.Megabyte<<20)
-	generatedLoad.WithLabelValues("memory").Add(float64(m.Megabyte))
+	metrics.GeneratedLoad.WithLabelValues("memory").Add(float64(m.Megabyte))
 	for i := 0; i < len(ballast); i++ {
 		ballast[i] = byte('A')
 	}
 	<-time.After(m.Duration * time.Second)
 	ballast = nil
 	runtime.GC()
-	generatedLoad.DeleteLabelValues("memory")
+	metrics.GeneratedLoad.DeleteLabelValues("memory")
 	log.Debugf("MEM load test done.- %s", time.Now().String())
 }
 
@@ -307,7 +268,7 @@ func exceptionsGoCall(c *gin.Context) {
 }
 
 func main() {
-	startup = time.Now()
+	metrics.Startup = time.Now()
 
 	apiAddr := viper.GetString("api.addr")
 	apiBasePath := viper.GetString("api.basePath")
@@ -323,13 +284,13 @@ func main() {
 	var s State
 
 	go func() {
-		log.Debugf("api listen on: %s, basePath: %s", apiAddr,apiBasePath)
+		log.Debugf("api listen on: %s, basePath: %s", apiAddr, apiBasePath)
 		r := gin.New()
 		api := r.Group(apiBasePath)
 		api.GET("/", func(c *gin.Context) {
 			c.JSON(200, "/ - OK!")
 		})
-		api.GET("metrics", promHandler())
+		api.GET("metrics", metrics.Handler())
 		api.GET("state", s.stateGetHandler)
 		api.PATCH("state", s.statePatchHandler)
 		api.GET("state/memory", s.memoryGetHandler)
