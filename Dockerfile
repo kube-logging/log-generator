@@ -11,12 +11,10 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY main.go main.go
-COPY conf conf
-COPY formats formats
+ADD . .
 
 # Build
-RUN CGO_ENABLED=0 go build -a -o loggen main.go
+RUN CGO_ENABLED=0 go build -a -o bin/loggen main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
@@ -24,6 +22,6 @@ FROM gcr.io/distroless/static:latest
 
 WORKDIR /
 
-COPY --from=builder /workspace/loggen .
+COPY --from=builder /workspace/bin/loggen .
 
 ENTRYPOINT ["/loggen"]
