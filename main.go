@@ -8,14 +8,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
-	"sync"
 	"time"
 
 	"github.com/banzaicloud/log-generator/conf"
 	"github.com/banzaicloud/log-generator/formats"
 	"github.com/banzaicloud/log-generator/metrics"
-	"github.com/dhoomakethu/stress/utils"
+	"github.com/banzaicloud/log-generator/stress"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,31 +27,14 @@ func init() {
 	conf.Init()
 }
 
-type Memory struct {
-	Megabyte     int64          `json:"megabyte"`
-	Active       time.Time      `json:"active"`
-	Duration     time.Duration  `json:"duration"`
-	LastModified time.Time      `json:"last_modified"`
-	mutex        sync.Mutex     `json:"_"`
-	wg           sync.WaitGroup `json:"_"`
-}
-
-type CPU struct {
-	Load         float64       `json:"load"`
-	Duration     time.Duration `json:"duration"`
-	Active       time.Time     `json:"active"`
-	Core         float64       `json:"core"`
-	LastModified time.Time     `json:"last_modified"`
-}
-
 type LogLevel struct {
 	Level        string    `json:"level"`
 	LastModified time.Time `json:"last_modified"`
 }
 
 type State struct {
-	Memory    Memory                     `json:"memory"`
-	Cpu       CPU                        `json:"cpu"`
+	Memory    stress.Memory              `json:"memory"`
+	Cpu       stress.CPU                 `json:"cpu"`
 	LogLevel  LogLevel                   `json:"log_level"`
 	GolangLog formats.GolangLogIntensity `json:"golang_log"`
 }
@@ -81,87 +62,6 @@ func emitMessage(gen LogGen) {
 	fmt.Println(msg)
 	metrics.EventEmitted.With(gen.Labels()).Inc()
 	metrics.EventEmittedBytes.With(gen.Labels()).Add(size)
-}
-
-func (s *State) cpuGetHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, s.Cpu)
-}
-
-func (s *State) cpuPatchHandler(c *gin.Context) {
-	if err := c.ShouldBindJSON(&s.Cpu); err != nil {
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	err := s.cpuSet()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-	}
-	c.JSON(http.StatusOK, s.Cpu)
-}
-
-func (s *State) cpuSet() error {
-	s.Cpu.LastModified = time.Now()
-	s.Cpu.Active = time.Now().Add(s.Cpu.Duration * time.Second)
-	go s.Cpu.cpuLoad()
-	return nil
-}
-
-func (c CPU) cpuLoad() {
-	log.Debugf("CPU load test started, duration: %s", c.Duration.String())
-	sampleInterval := 100 * time.Millisecond
-	controller := utils.NewCpuLoadController(sampleInterval, c.Load)
-	monitor := utils.NewCpuLoadMonitor(c.Core, sampleInterval)
-	actuator := utils.NewCpuLoadGenerator(controller, monitor, c.Duration)
-	metrics.GeneratedLoad.WithLabelValues("cpu").Add(float64(c.Load))
-	utils.RunCpuLoader(actuator)
-	metrics.GeneratedLoad.DeleteLabelValues("cpu")
-	log.Debugln("CPU load test done.")
-}
-
-func (s *State) memoryGetHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, s.Memory)
-}
-
-func (s *State) memoryPatchHandler(c *gin.Context) {
-	if err := c.ShouldBindJSON(&s.Memory); err != nil {
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	err := s.memorySet()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-	}
-	c.JSON(http.StatusOK, s.Memory)
-}
-
-func (s *State) memorySet() error {
-	s.Memory.LastModified = time.Now()
-	s.Memory.Active = time.Now().Add(s.Memory.Duration * time.Second)
-	go s.Memory.memoryBallast()
-	return nil
-}
-
-func (m *Memory) memoryBallast() {
-	m.wg.Add(1)
-	defer m.wg.Done()
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	log.Debugf("MEM load test started. - %s", time.Now().String())
-	ballast := make([]byte, m.Megabyte<<20)
-	metrics.GeneratedLoad.WithLabelValues("memory").Add(float64(m.Megabyte))
-	for i := 0; i < len(ballast); i++ {
-		ballast[i] = byte('A')
-	}
-	<-time.After(m.Duration * time.Second)
-	ballast = nil
-	runtime.GC()
-	metrics.GeneratedLoad.DeleteLabelValues("memory")
-	log.Debugf("MEM load test done.- %s", time.Now().String())
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
@@ -245,14 +145,14 @@ func (s *State) statePatchHandler(c *gin.Context) {
 		return
 	}
 
-	if t.Memory != (Memory{}) {
+	if t.Memory != (stress.Memory{}) {
 		s.Memory = t.Memory
-		s.memorySet()
+		s.Memory.Stress()
 	}
 
-	if t.Cpu != (CPU{}) {
+	if t.Cpu != (stress.CPU{}) {
 		s.Cpu = t.Cpu
-		s.cpuSet()
+		s.Cpu.Stress()
 	}
 
 	if t.LogLevel != (LogLevel{}) {
@@ -293,10 +193,10 @@ func main() {
 		api.GET("metrics", metrics.Handler())
 		api.GET("state", s.stateGetHandler)
 		api.PATCH("state", s.statePatchHandler)
-		api.GET("state/memory", s.memoryGetHandler)
-		api.PATCH("state/memory", s.memoryPatchHandler)
-		api.GET("state/cpu", s.cpuGetHandler)
-		api.PATCH("state/cpu", s.cpuPatchHandler)
+		api.GET("state/memory", s.Memory.GetHandler)
+		api.PATCH("state/memory", s.Memory.PatchHandler)
+		api.GET("state/cpu", s.Cpu.GetHandler)
+		api.PATCH("state/cpu", s.Cpu.PatchHandler)
 		api.GET("state/log", s.logLevelGetHandler)
 		api.PATCH("state/log", s.logLevelPatchHandler)
 		api.GET("state/golang", s.golangGetHandler)
@@ -305,7 +205,7 @@ func main() {
 		api.PATCH("exceptions/go", exceptionsGoCall)
 
 		r.Run(apiAddr)
-		s.Memory.wg.Wait()
+		s.Memory.Wait()
 	}()
 
 	var counter = 0
