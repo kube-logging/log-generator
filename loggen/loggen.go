@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/log-generator/formats"
+	"github.com/banzaicloud/log-generator/formats/golang"
 	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
@@ -19,7 +20,7 @@ import (
 )
 
 type LogGen struct {
-	GolangLog formats.GolangLogIntensity `json:"golang_log"`
+	GolangLog golang.GolangLogIntensity `json:"golang_log"`
 }
 
 type Log interface {
@@ -125,7 +126,7 @@ func (l *LogGen) Run() {
 				counter++
 			}
 			if viper.GetBool("golang.enabled") {
-				n = formats.NewGolangLogRandom(l.GolangLog)
+				n = golang.NewGolangLogRandom(l.GolangLog)
 				emitMessage(n)
 				counter++
 			}
