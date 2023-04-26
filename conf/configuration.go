@@ -13,7 +13,10 @@ func Init() {
 
 	viper.AddConfigPath("./conf/")
 	viper.SetConfigName("config")
-	viper.ReadInConfig()
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Warnf("Error reading config file, %s", err)
+	}
 
 	viper.SetDefault("logging.level", "info")
 
@@ -23,9 +26,6 @@ func Init() {
 	}
 	log.SetLevel(level)
 
-	if err := viper.ReadInConfig(); err != nil {
-		log.Warnf("Error reading config file, %s", err)
-	}
 	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
 	viper.SetDefault("message.count", 0)
 	viper.SetDefault("message.randomise", true)
