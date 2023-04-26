@@ -15,18 +15,12 @@ import (
 	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
-	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 type LogGen struct {
 	GolangLog golang.GolangLogIntensity `json:"golang_log"`
-}
-
-type Log interface {
-	String() (string, float64)
-	Labels() prometheus.Labels
 }
 
 func tickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
@@ -42,7 +36,7 @@ func tickerForEvent(events int, j jitterbug.Jitter) *jitterbug.Ticker {
 	return jitterbug.New(time.Duration(duration)*time.Millisecond, j)
 }
 
-func emitMessage(gen Log) {
+func emitMessage(gen formats.Log) {
 	msg, size := gen.String()
 	fmt.Println(msg)
 	metrics.EventEmitted.With(gen.Labels()).Inc()
@@ -116,7 +110,7 @@ func (l *LogGen) Run() {
 		case <-done:
 			return
 		case <-ticker.C:
-			var n Log
+			var n formats.Log
 			if viper.GetBool("nginx.enabled") {
 				if viper.GetBool("message.randomise") {
 					n = web.NewNginxLogRandom()
