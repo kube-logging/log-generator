@@ -1,0 +1,9 @@
+{{define "kube.cri" -}}
+{{.ISODateTime}} stdout P First line of log entry 2
+{{.ISODateTime}} stdout P Second line of the log entry 2
+{{.ISODateTime}} stderr F Last line of the log entry 2
+{{- end}}
+
+{{define "kube.json" -}}
+{"log": "{{.Msg}}", "stream": "stderr", "time": "{{.ISODateTime}}"}
+{{- end}}
