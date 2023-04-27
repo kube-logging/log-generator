@@ -121,7 +121,7 @@ func (l *LogGen) Run() {
 				counter++
 			}
 			if viper.GetBool("golang.enabled") {
-				n = golang.NewGolangLogRandom(l.GolangLog)
+				n = formats.NewGolangRandom(l.GolangLog)
 				emitMessage(n)
 				counter++
 			}

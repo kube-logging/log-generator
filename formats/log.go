@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/banzaicloud/log-generator/formats/golang"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -25,6 +26,10 @@ type LogTemplate struct {
 
 	template *template.Template
 	data     LogTemplateData
+}
+
+func NewGolangRandom(i golang.GolangLogIntensity) Log {
+	return golang.NewGolangLogRandom(i)
 }
 
 func newLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate, error) {
