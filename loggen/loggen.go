@@ -11,6 +11,7 @@ import (
 
 	"github.com/banzaicloud/log-generator/formats"
 	"github.com/banzaicloud/log-generator/formats/golang"
+	"github.com/banzaicloud/log-generator/formats/web"
 	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
@@ -29,7 +30,7 @@ type Log interface {
 }
 
 func tickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
-	_, length := formats.NewNginxLog().String()
+	_, length := web.NewNginxLog().String()
 	events := float64(1) / (float64(length) / float64(bandwith))
 	duration := float64(1000) / float64(events)
 	return jitterbug.New(time.Duration(duration)*time.Millisecond, j)
@@ -118,9 +119,9 @@ func (l *LogGen) Run() {
 			var n Log
 			if viper.GetBool("nginx.enabled") {
 				if viper.GetBool("message.randomise") {
-					n = formats.NewNginxLogRandom()
+					n = web.NewNginxLogRandom()
 				} else {
-					n = formats.NewNginxLog()
+					n = web.NewNginxLog()
 				}
 				emitMessage(n)
 				counter++
@@ -132,9 +133,9 @@ func (l *LogGen) Run() {
 			}
 			if viper.GetBool("apache.enabled") {
 				if viper.GetBool("message.randomise") {
-					n = formats.NewApacheLogRandom()
+					n = web.NewApacheLogRandom()
 				} else {
-					n = formats.NewApacheLog()
+					n = web.NewApacheLog()
 				}
 				emitMessage(n)
 				counter++

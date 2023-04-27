@@ -1,6 +1,6 @@
 // Copyright (c) 2021 Cisco All Rights Reserved.
 
-package formats
+package web
 
 import (
 	"bytes"
@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-
 type ApacheLog struct {
 	Remote            string
 	Host              string
@@ -30,7 +29,6 @@ type ApacheLog struct {
 	Agent             string
 	HttpXForwardedFor string
 }
-
 
 func NewApacheLog() ApacheLog {
 	return ApacheLog{
@@ -47,7 +45,6 @@ func NewApacheLog() ApacheLog {
 		HttpXForwardedFor: "-",
 	}
 }
-
 
 func NewApacheLogRandom() ApacheLog {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -77,14 +74,14 @@ func NewApacheLogRandom() ApacheLog {
 func (n ApacheLog) String() (string, float64) {
 	n.Time = time.Now().Format(viper.GetString("apache.time_format"))
 
-	t,err := template.New("line").Parse(viper.GetString("apache.output_format"))
+	t, err := template.New("line").Parse(viper.GetString("apache.output_format"))
 	if err != nil {
 		log.Error(err)
 		return "", 0
 	}
 	output := new(bytes.Buffer)
 	err = t.Execute(output, n)
-		if err != nil {
+	if err != nil {
 		return "", 0
 	}
 	message := fmt.Sprint(output.String())
@@ -93,7 +90,7 @@ func (n ApacheLog) String() (string, float64) {
 }
 
 
-func (a ApacheLog) Labels() (prometheus.Labels) {
+func (a ApacheLog) Labels() prometheus.Labels {
 	return prometheus.Labels{
 		"type":"apache",
 		"severity": fmt.Sprintf("%d",a.Code),
