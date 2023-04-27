@@ -21,8 +21,8 @@ var (
 		[]string{"type", "severity"})
 
 	EventEmittedBytes = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "loggen_events_total_bytes",
-		Help: "The total number of events",
+		Name: "loggen_event_bytes_total",
+		Help: "The total bytes of events",
 	},
 		[]string{"type", "severity"})
 	GeneratedLoad = promauto.NewCounterVec(prometheus.CounterOpts{
@@ -36,7 +36,7 @@ var (
 			Name: "uptime_seconds",
 			Help: "Generator uptime.",
 		}, func() float64 {
-			return time.Now().Sub(Startup).Seconds()
+			return time.Since(Startup).Seconds()
 		},
 	)
 )
