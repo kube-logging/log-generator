@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/banzaicloud/log-generator/formats/golang"
+	"github.com/banzaicloud/log-generator/formats/syslog"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -28,6 +29,18 @@ type LogTemplate struct {
 	data     LogTemplateData
 }
 
+func NewSyslog(format string) (*LogTemplate, error) {
+	return newLogTemplate(format, syslog.TemplateFS, syslog.SampleData())
+}
+
+func NewRandomSyslog(format string) (*LogTemplate, error) {
+	return newLogTemplate(format, syslog.TemplateFS, syslog.RandomData())
+}
+
+func SyslogFormatNames() []string {
+	return formatNames(syslog.TemplateFS)
+}
+
 func NewGolangRandom(i golang.GolangLogIntensity) Log {
 	return golang.NewGolangLogRandom(i)
 }
@@ -43,6 +56,16 @@ func newLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate
 		template: template,
 		data:     data,
 	}, nil
+}
+
+func formatNames(fs fs.FS) []string {
+	formats := []string{}
+
+	for _, t := range loadAllTemplates(fs) {
+		formats = append(formats, strings.TrimSuffix(t.Name(), ".tmpl"))
+	}
+
+	return formats
 }
 
 func (l *LogTemplate) String() (string, float64) {

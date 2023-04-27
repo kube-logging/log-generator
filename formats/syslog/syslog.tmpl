@@ -1,0 +1,7 @@
+{{define "syslog.rfc3164" -}}
+{{.Pri}}{{.BSDDateTime}} {{.Host}} {{.AppName}}: {{.Msg}}
+{{- end}}
+
+{{define "syslog.rfc5424" -}}
+{{.Pri}}1 {{.ISODateTime}} {{.Host}} {{.AppName}} {{.PID}} ID47 [exampleSDID@32473 iut="3" eventSource="Application" eventID="1011"] {{.Msg}}
+{{- end}}
