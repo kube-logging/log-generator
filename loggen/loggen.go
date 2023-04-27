@@ -11,7 +11,6 @@ import (
 
 	"github.com/banzaicloud/log-generator/formats"
 	"github.com/banzaicloud/log-generator/formats/golang"
-	"github.com/banzaicloud/log-generator/formats/web"
 	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
@@ -24,7 +23,8 @@ type LogGen struct {
 }
 
 func tickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
-	_, length := web.NewNginxLog().String()
+	l, _ := formats.NewWeb("nginx")
+	_, length := l.String()
 	events := float64(1) / (float64(length) / float64(bandwith))
 	duration := float64(1000) / float64(events)
 	return jitterbug.New(time.Duration(duration)*time.Millisecond, j)
@@ -111,26 +111,35 @@ func (l *LogGen) Run() {
 			return
 		case <-ticker.C:
 			var n formats.Log
+			var err error
 			if viper.GetBool("nginx.enabled") {
 				if viper.GetBool("message.randomise") {
-					n = web.NewNginxLogRandom()
+					n, err = formats.NewRandomWeb("nginx")
 				} else {
-					n = web.NewNginxLog()
+					n, err = formats.NewWeb("nginx")
+				}
+
+				if err != nil {
+					log.Panic(err)
+				}
+				emitMessage(n)
+				counter++
+			}
+			if viper.GetBool("apache.enabled") {
+				if viper.GetBool("message.randomise") {
+					n, err = formats.NewRandomWeb("apache")
+				} else {
+					n, err = formats.NewWeb("apache")
+				}
+
+				if err != nil {
+					log.Panic(err)
 				}
 				emitMessage(n)
 				counter++
 			}
 			if viper.GetBool("golang.enabled") {
 				n = formats.NewGolangRandom(l.GolangLog)
-				emitMessage(n)
-				counter++
-			}
-			if viper.GetBool("apache.enabled") {
-				if viper.GetBool("message.randomise") {
-					n = web.NewApacheLogRandom()
-				} else {
-					n = web.NewApacheLog()
-				}
 				emitMessage(n)
 				counter++
 			}

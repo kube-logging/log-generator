@@ -10,6 +10,7 @@ import (
 
 	"github.com/banzaicloud/log-generator/formats/golang"
 	"github.com/banzaicloud/log-generator/formats/syslog"
+	"github.com/banzaicloud/log-generator/formats/web"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -39,6 +40,18 @@ func NewRandomSyslog(format string) (*LogTemplate, error) {
 
 func SyslogFormatNames() []string {
 	return formatNames(syslog.TemplateFS)
+}
+
+func NewWeb(format string) (*LogTemplate, error) {
+	return newLogTemplate(format, web.TemplateFS, web.SampleData())
+}
+
+func NewRandomWeb(format string) (*LogTemplate, error) {
+	return newLogTemplate(format, web.TemplateFS, web.RandomData())
+}
+
+func WebFormatNames() []string {
+	return formatNames(web.TemplateFS)
 }
 
 func NewGolangRandom(i golang.GolangLogIntensity) Log {

@@ -1,26 +1,26 @@
-// Copyright (c) 2021 Cisco All Rights Reserved.
+// Copyright (c) 2023 Cisco All Rights Reserved.
 
 package web
 
 import (
-	"bytes"
-	"fmt"
+	"embed"
 	"math/rand"
-	"text/template"
+	"strconv"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
+
 	wr "github.com/mroth/weightedrand"
-	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
-type NginxLog struct {
+//go:embed *.tmpl
+var TemplateFS embed.FS
+
+type TemplateData struct {
 	Remote            string
 	Host              string
 	User              string
-	Time              string
+	Time              time.Time
 	Method            string
 	Path              string
 	Code              int
@@ -30,12 +30,12 @@ type NginxLog struct {
 	HttpXForwardedFor string
 }
 
-func NewNginxLog() NginxLog {
-	return NginxLog{
+func SampleData() TemplateData {
+	return TemplateData{
 		Remote:            "127.0.0.1",
 		Host:              "-",
 		User:              "-",
-		Time:              "",
+		Time:              time.Date(2011, 6, 25, 20, 0, 4, 0, time.UTC),
 		Method:            "GET",
 		Path:              "/loggen/loggen/loggen/loggen/loggen/loggen/loggen",
 		Code:              200,
@@ -46,8 +46,13 @@ func NewNginxLog() NginxLog {
 	}
 }
 
-func NewNginxLogRandom() NginxLog {
+func (t TemplateData) WebServerDateTime() string {
+	return t.Time.Format("02/Jan/2006:15:04:05 -0700")
+}
+
+func RandomData() TemplateData {
 	rand.Seed(time.Now().UTC().UnixNano())
+
 	c, _ := wr.NewChooser(
 		wr.Choice{Item: 200, Weight: 7},
 		wr.Choice{Item: 404, Weight: 3},
@@ -55,11 +60,12 @@ func NewNginxLogRandom() NginxLog {
 		wr.Choice{Item: 302, Weight: 2},
 		wr.Choice{Item: 403, Weight: 2},
 	)
-	return NginxLog{
+
+	return TemplateData{
 		Remote:            randomdata.IpV4Address(),
 		Host:              "-",
 		User:              "-",
-		Time:              "",
+		Time:              time.Now(),
 		Method:            randomdata.StringSample("GET", "POST", "PUT"),
 		Path:              randomdata.StringSample("/", "/blog", "/index.html", "/products"),
 		Code:              c.Pick().(int),
@@ -70,27 +76,6 @@ func NewNginxLogRandom() NginxLog {
 	}
 }
 
-func (n NginxLog) String() (string, float64) {
-	n.Time = time.Now().Format(viper.GetString("nginx.time_format"))
-
-	t, err := template.New("line").Parse(viper.GetString("nginx.output_format"))
-	if err != nil {
-		log.Error(err)
-		return "", 0
-	}
-	output := new(bytes.Buffer)
-	err = t.Execute(output, n)
-	if err != nil {
-		return "", 0
-	}
-	message := fmt.Sprint(output.String())
-
-	return message, float64(len([]byte(message)))
-}
-
-func (n NginxLog) Labels() prometheus.Labels {
-	return prometheus.Labels{
-		"type":     "nginx",
-		"severity": fmt.Sprintf("%d", n.Code),
-	}
+func (t TemplateData) Severity() string {
+	return strconv.FormatInt(int64(t.Code), 10)
 }
