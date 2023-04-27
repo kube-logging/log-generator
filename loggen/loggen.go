@@ -92,11 +92,10 @@ func (l *LogGen) Run() {
 	var counter = 0
 	// Init ticker
 	var ticker *jitterbug.Ticker
-	var jitter jitterbug.Jitter
 
-	//jitter = &jitterbug.Norm{Stdev: time.Millisecond * 300}
+	//jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
 	// TODO find a way to set Jitter from params
-	jitter = &jitterbug.Norm{}
+	jitter := &jitterbug.Norm{}
 
 	eventPerSec := viper.GetInt("message.event-per-sec")
 	bytePerSec := viper.GetInt("byte-per-sec")
