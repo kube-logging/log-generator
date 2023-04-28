@@ -37,7 +37,6 @@ type State struct {
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
-	s.LogLevel.Level = log.GetLevel().String()
 	c.JSON(http.StatusOK, s.LogLevel)
 }
 
@@ -112,6 +111,7 @@ func main() {
 	flag.Parse()
 
 	var s State
+	s.LogLevel.Level = log.GetLevel().String()
 
 	go func() {
 		log.Debugf("api listen on: %s, basePath: %s", apiAddr, apiBasePath)
