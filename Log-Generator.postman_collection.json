@@ -38,12 +38,11 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/memory",
+									"raw": "{{baseUrl}}/memory",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"memory"
 									]
 								}
@@ -84,12 +83,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/memory",
+									"raw": "{{baseUrl}}/memory",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"memory"
 									]
 								}
@@ -120,12 +118,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/state/cpu",
+									"raw": "{{baseUrl}}/cpu",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"cpu"
 									]
 								}
@@ -167,12 +164,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/cpu",
+									"raw": "{{baseUrl}}/cpu",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"cpu"
 									]
 								}
@@ -215,12 +211,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/log_level",
+									"raw": "{{baseUrl}}/log_level",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"log_level"
 									]
 								}
@@ -260,12 +255,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/log_level",
+									"raw": "{{baseUrl}}/log_level",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"log_level"
 									]
 								}
@@ -297,12 +291,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/state",
+									"raw": "{{baseUrl}}",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state"
+										"/"
 									]
 								}
 							},
@@ -346,12 +340,12 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state",
+									"raw": "{{baseUrl}}",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state"
+										"/"
 									]
 								}
 							},

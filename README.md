@@ -26,14 +26,14 @@ $ go run main.go
 
 Now you can connect to http://localhost:11000 from your browser or using your favorite HTTP client.
 
-## Available API Calls 
+## Available API Calls
 
 ### Manage Memory Load Function
-#### [GET] /state/memory 
+#### [GET] /memory
 
 call:
 ```sh
-curl --location --request GET 'localhost:11000/state/memory' 
+curl --location --request GET 'localhost:11000/memory'
 ```
 
 Response:
@@ -46,11 +46,11 @@ Response:
 }
 ```
 
-#### [PATCH] /state/memory 
+#### [PATCH] /memory
 
 Call:
 ```sh
-curl --location --request PATCH 'localhost:11000/state/memory' \
+curl --location --request PATCH 'localhost:11000/memory' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "megabyte": 100,
@@ -71,11 +71,11 @@ Response:
 
 ### Manage CPU Load Function
 
-#### [GET] /state/cpu 
+#### [GET] /cpu
 
 Call:
 ```sh
-curl --location --request GET 'localhost:11000/state/cpu'
+curl --location --request GET 'localhost:11000/cpu'
 ```
 Response:
 ```sh
@@ -89,10 +89,10 @@ Response:
 
 ```
 
-#### [PATCH] /state/cpu 
+#### [PATCH] /cpu
 Call:
 ```sh
-curl --location --request PATCH 'localhost:11000/state/cpu' \
+curl --location --request PATCH 'localhost:11000/cpu' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "load": 5.7,
@@ -112,10 +112,10 @@ Response:
 ```
 
 ### Manage Log Level Configuration
-#### [GET] /state/log_level 
+#### [GET] /log_level
 Call:
 ```sh
-curl --location --request GET 'localhost:11000/state/log_level' 
+curl --location --request GET 'localhost:11000/log_level'
 ```
 Response:
 ```sh
@@ -126,10 +126,10 @@ Response:
 
 ```
 
-#### [PATCH] /state/log_level 
+#### [PATCH] /log_level
 Call:
 ```sh
-curl --location --request PATCH 'localhost:11000/state/log_level' \
+curl --location --request PATCH 'localhost:11000/log_level' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "level": "info"
@@ -147,10 +147,10 @@ Response:
 
 ### Status
 
-#### [GET] /state 
+#### [GET] /
 Call:
 ```sh
-curl --location --request GET 'localhost:11000/state’
+curl --location --request GET 'localhost:11000/'
 ```
 Response:
 ```sh
@@ -175,10 +175,10 @@ Response:
 }
 ```
 
-#### [PATCH] /state/
+#### [PATCH] /
 Call:
 ```sh
-curl --location --request PATCH 'localhost:11000/state' \
+curl --location --request PATCH 'localhost:11000/' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "memory": {
@@ -236,62 +236,61 @@ Log-Generator
 
 ❏ Test / Memory
 ↳ memory
-  GET localhost:11000/state/memory [200 OK, 247B, 43ms]
+  GET localhost:11000/memory [200 OK, 252B, 34ms]
   ✓  Status test
 
 ↳ memory
-  PATCH localhost:11000/state/memory [200 OK, 249B, 5ms]
+  PATCH localhost:11000/memory [200 OK, 255B, 8ms]
   ✓  Status test
   ✓  Content test
 
 ❏ Test / CPU
 ↳ cpu
-  GET localhost:11000/state/cpu [200 OK, 252B, 4ms]
+  GET localhost:11000/cpu [200 OK, 259B, 6ms]
   ✓  Status test
 
 ↳ cpu
-  PATCH localhost:11000/state/cpu [200 OK, 254B, 5ms]
+  PATCH localhost:11000/cpu [200 OK, 260B, 3ms]
   ✓  Status test
   ✓  Content test
 
 ❏ Test / LogLevel
 ↳ log_level
-  GET localhost:11000/state/log_level [200 OK, 191B, 3ms]
+  GET localhost:11000/log_level [200 OK, 194B, 4ms]
   ✓  Status test
 
 ↳ log_level
-  PATCH localhost:11000/state/log_level [200 OK, 191B, 2ms]
+  PATCH localhost:11000/log_level [200 OK, 194B, 4ms]
   ✓  Status test
   ✓  Content test
 
 ❏ Test / State
 ↳ state
-  GET localhost:11000/state [200 OK, 478B, 4ms]
+  GET localhost:11000// [200 OK, 588B, 5ms]
   ✓  Status test
 
 ↳ state
-  PATCH localhost:11000/state [200 OK, 474B, 4ms]
+  PATCH localhost:11000// [200 OK, 585B, 7ms]
   ✓  Status test
   ✓  Content test
 
-┌─────────────────────────┬──────────────────┬─────────────────┐
-│                         │         executed │          failed │
-├─────────────────────────┼──────────────────┼─────────────────┤
-│              iterations │                1 │               0 │
-├─────────────────────────┼──────────────────┼─────────────────┤
-│                requests │                8 │               0 │
-├─────────────────────────┼──────────────────┼─────────────────┤
-│            test-scripts │               16 │               0 │
-├─────────────────────────┼──────────────────┼─────────────────┤
-│      prerequest-scripts │                8 │               0 │
-├─────────────────────────┼──────────────────┼─────────────────┤
-│              assertions │               12 │               0 │
-├─────────────────────────┴──────────────────┴─────────────────┤
-│ total run duration: 323ms                                    │
-├──────────────────────────────────────────────────────────────┤
-│ total data received: 1.31KB (approx)                         │
-├──────────────────────────────────────────────────────────────┤
-│ average response time: 8ms [min: 2ms, max: 43ms, s.d.: 12ms] │
-└──────────────────────────────────────────────────────────────┘
+┌─────────────────────────┬─────────────────┬─────────────────┐
+│                         │        executed │          failed │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│              iterations │               1 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│                requests │               8 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│            test-scripts │              16 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│      prerequest-scripts │               8 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│              assertions │              12 │               0 │
+├─────────────────────────┴─────────────────┴─────────────────┤
+│ total run duration: 255ms                                   │
+├─────────────────────────────────────────────────────────────┤
+│ total data received: 1.6kB (approx)                         │
+├─────────────────────────────────────────────────────────────┤
+│ average response time: 8ms [min: 3ms, max: 34ms, s.d.: 9ms] │
+└─────────────────────────────────────────────────────────────┘
 ```
-
