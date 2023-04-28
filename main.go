@@ -62,6 +62,7 @@ func (s *State) logLevelPatchHandler(c *gin.Context) {
 	err := s.logLevelSet()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 
 	}
 	c.JSON(http.StatusOK, s.LogLevel)

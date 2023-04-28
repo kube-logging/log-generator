@@ -33,6 +33,7 @@ func (c *CPU) PatchHandler(ctx *gin.Context) {
 	err := c.Stress()
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 
 	}
 	ctx.JSON(http.StatusOK, c)
