@@ -124,6 +124,7 @@ func main() {
 		api.PATCH("/", s.statePatchHandler)
 		api.GET("/loggen", s.Loggen.GetHandler)
 		api.POST("/loggen", s.Loggen.PostHandler)
+		api.GET("/loggen/formats", s.Loggen.FormatsGetHandler)
 		api.GET("/memory", s.Memory.GetHandler)
 		api.PATCH("/memory", s.Memory.PatchHandler)
 		api.GET("/cpu", s.Cpu.GetHandler)

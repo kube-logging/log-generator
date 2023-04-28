@@ -72,6 +72,14 @@ func (l *List) MarshalJSON() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+func (l *LogGen) FormatsGetHandler(ctx *gin.Context) {
+	response := map[string][]string{}
+	response["syslog"] = formats.SyslogFormatNames()
+	response["web"] = formats.WebFormatNames()
+
+	ctx.JSON(http.StatusOK, response)
+}
+
 func (l *LogGen) GetHandler(ctx *gin.Context) {
 	l.m.Lock()
 	defer l.m.Unlock()

@@ -63,6 +63,41 @@ Response:
 }
 ```
 
+#### [GET] /loggen/formats
+
+Call:
+```sh
+curl --location --request GET 'localhost:11000/loggen/formats'
+```
+
+Response:
+```sh
+{
+  "syslog": [
+    "palo-alto.traffic",
+    "syslog.rfc3164",
+    "vmware.esxlog.vpxa",
+    "pfsense",
+    "syslog",
+    "ubiquiti",
+    "cisco.ise",
+    "kube.cri",
+    "kube",
+    "palo-alto",
+    "pfsense.filterlog",
+    "syslog.rfc5424",
+    "vmware",
+    "cisco.ios",
+    "cisco",
+    "kube.json"
+  ],
+  "web": [
+    "apache",
+    "nginx"
+  ]
+}
+```
+
 #### [POST] /loggen
 
 Call:
