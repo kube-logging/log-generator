@@ -28,10 +28,67 @@ Now you can connect to http://localhost:11000 from your browser or using your fa
 
 ## Available API Calls
 
+### Log generator
+#### [GET] /loggen
+
+Call:
+```sh
+curl --location --request GET 'localhost:11000/loggen'
+```
+
+Response:
+```sh
+{
+  "event_per_sec": 100,
+  "byte_per_sec": 200,
+  "randomise": true,
+  "active_requests": [
+    {
+      "type": "syslog",
+      "format": "cisco.ios",
+      "count": 980
+    },
+    {
+      "type": "syslog",
+      "format": "cisco.ise",
+      "count": 2
+    }
+  ],
+  "golang_log": {
+    "error_weight": 0,
+    "warning_weight": 0,
+    "info_weight": 1,
+    "debug_weight": 0
+  }
+}
+```
+
+#### [POST] /loggen
+
+Call:
+```sh
+curl --location --request POST 'localhost:11000/loggen' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "type": "syslog",
+    "format": "cisco.ios",
+    "count": 1000
+}'
+```
+
+Response:
+```sh
+{
+    "type": "syslog",
+    "format": "cisco.ios",
+    "count": 1000
+}
+```
+
 ### Manage Memory Load Function
 #### [GET] /memory
 
-call:
+Call:
 ```sh
 curl --location --request GET 'localhost:11000/memory'
 ```
@@ -234,19 +291,29 @@ Expected Output:
 ```sh
 Log-Generator
 
+❏ Test / Loggen
+↳ loggen
+  GET localhost:11000/loggen [200 OK, 284B, 31ms]
+  ✓  Status test
+
+↳ loggen
+  POST localhost:11000/loggen [200 OK, 171B, 7ms]
+  ✓  Status test
+  ✓  Content test
+
 ❏ Test / Memory
 ↳ memory
-  GET localhost:11000/memory [200 OK, 252B, 34ms]
+  GET localhost:11000/memory [200 OK, 221B, 5ms]
   ✓  Status test
 
 ↳ memory
-  PATCH localhost:11000/memory [200 OK, 255B, 8ms]
+  PATCH localhost:11000/memory [200 OK, 255B, 3ms]
   ✓  Status test
   ✓  Content test
 
 ❏ Test / CPU
 ↳ cpu
-  GET localhost:11000/cpu [200 OK, 259B, 6ms]
+  GET localhost:11000/cpu [200 OK, 227B, 4ms]
   ✓  Status test
 
 ↳ cpu
@@ -256,21 +323,21 @@ Log-Generator
 
 ❏ Test / LogLevel
 ↳ log_level
-  GET localhost:11000/log_level [200 OK, 194B, 4ms]
+  GET localhost:11000/log_level [200 OK, 179B, 3ms]
   ✓  Status test
 
 ↳ log_level
-  PATCH localhost:11000/log_level [200 OK, 194B, 4ms]
+  PATCH localhost:11000/log_level [200 OK, 194B, 3ms]
   ✓  Status test
   ✓  Content test
 
 ❏ Test / State
 ↳ state
-  GET localhost:11000// [200 OK, 588B, 5ms]
+  GET localhost:11000// [200 OK, 711B, 5ms]
   ✓  Status test
 
 ↳ state
-  PATCH localhost:11000// [200 OK, 585B, 7ms]
+  PATCH localhost:11000// [200 OK, 708B, 4ms]
   ✓  Status test
   ✓  Content test
 
@@ -279,18 +346,18 @@ Log-Generator
 ├─────────────────────────┼─────────────────┼─────────────────┤
 │              iterations │               1 │               0 │
 ├─────────────────────────┼─────────────────┼─────────────────┤
-│                requests │               8 │               0 │
+│                requests │              10 │               0 │
 ├─────────────────────────┼─────────────────┼─────────────────┤
-│            test-scripts │              16 │               0 │
+│            test-scripts │              20 │               0 │
 ├─────────────────────────┼─────────────────┼─────────────────┤
-│      prerequest-scripts │               8 │               0 │
+│      prerequest-scripts │              10 │               0 │
 ├─────────────────────────┼─────────────────┼─────────────────┤
-│              assertions │              12 │               0 │
+│              assertions │              15 │               0 │
 ├─────────────────────────┴─────────────────┴─────────────────┤
-│ total run duration: 255ms                                   │
+│ total run duration: 280ms                                   │
 ├─────────────────────────────────────────────────────────────┤
-│ total data received: 1.6kB (approx)                         │
+│ total data received: 1.97kB (approx)                        │
 ├─────────────────────────────────────────────────────────────┤
-│ average response time: 8ms [min: 3ms, max: 34ms, s.d.: 9ms] │
+│ average response time: 6ms [min: 3ms, max: 31ms, s.d.: 8ms] │
 └─────────────────────────────────────────────────────────────┘
 ```

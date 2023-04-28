@@ -30,10 +30,10 @@ type LogLevel struct {
 }
 
 type State struct {
-	Memory   stress.Memory `json:"memory"`
-	Cpu      stress.CPU    `json:"cpu"`
-	LogLevel LogLevel      `json:"log_level"`
-	Loggen   loggen.LogGen `json:"loggen"`
+	Memory   stress.Memory  `json:"memory"`
+	Cpu      stress.CPU     `json:"cpu"`
+	LogLevel LogLevel       `json:"log_level"`
+	Loggen   *loggen.LogGen `json:"loggen"`
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
@@ -112,6 +112,7 @@ func main() {
 	flag.Parse()
 
 	var s State
+	s.Loggen = loggen.New()
 	s.LogLevel.Level = log.GetLevel().String()
 
 	go func() {
@@ -121,6 +122,8 @@ func main() {
 		api.GET("metrics", metrics.Handler())
 		api.GET("/", s.stateGetHandler)
 		api.PATCH("/", s.statePatchHandler)
+		api.GET("/loggen", s.Loggen.GetHandler)
+		api.POST("/loggen", s.Loggen.PostHandler)
 		api.GET("/memory", s.Memory.GetHandler)
 		api.PATCH("/memory", s.Memory.PatchHandler)
 		api.GET("/cpu", s.Cpu.GetHandler)

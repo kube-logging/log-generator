@@ -14,6 +14,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// TODO: factory
+type void = struct{}
+
+var Types = map[string]struct{}{
+	"golang": void{},
+	"syslog": void{},
+	"web":    void{},
+}
+
 type Log interface {
 	String() (string, float64)
 	Labels() prometheus.Labels
