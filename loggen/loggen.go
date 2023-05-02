@@ -15,7 +15,6 @@ import (
 
 	"github.com/banzaicloud/log-generator/formats"
 	"github.com/banzaicloud/log-generator/formats/golang"
-	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
 	log "github.com/sirupsen/logrus"
@@ -33,7 +32,8 @@ type LogGen struct {
 	ActiveRequests List                      `json:"active_requests"`
 	GolangLog      golang.GolangLogIntensity `json:"golang_log"`
 
-	m sync.Mutex `json:"-"`
+	m      sync.Mutex `json:"-"`
+	writer LogWriter
 }
 
 type LogGenRequest struct {
@@ -166,13 +166,6 @@ func tickerForEvent(events int, j jitterbug.Jitter) *jitterbug.Ticker {
 	return jitterbug.New(time.Duration(duration)*time.Millisecond, j)
 }
 
-func emitMessage(gen formats.Log) {
-	msg, size := gen.String()
-	fmt.Println(msg)
-	metrics.EventEmitted.With(gen.Labels()).Inc()
-	metrics.EventEmittedBytes.With(gen.Labels()).Add(size)
-}
-
 func (l *LogGen) GolangGetHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, l.GolangLog)
 }
@@ -235,7 +228,7 @@ func (l *LogGen) processRequests() bool {
 	}
 
 	for _, msg := range logs {
-		emitMessage(msg)
+		l.writer.Send(msg)
 	}
 
 	return true
@@ -244,30 +237,33 @@ func (l *LogGen) processRequests() bool {
 func (l *LogGen) Run() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
-
 	done := make(chan bool, 1)
 
-	var counter = 0
-	var ticker *jitterbug.Ticker
+	go func() {
 
-	//jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
-	// TODO find a way to set Jitter from params
-	jitter := &jitterbug.Norm{}
+		var counter = 0
+		var ticker *jitterbug.Ticker
 
-	if l.EventPerSec > 0 {
-		ticker = tickerForEvent(l.EventPerSec, jitter)
-	} else if l.BytePerSec > 0 {
-		ticker = tickerForByte(l.BytePerSec, jitter)
-	}
-	count := viper.GetInt("message.count")
+		//jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
+		// TODO find a way to set Jitter from params
+		jitter := &jitterbug.Norm{}
 
-	l.golangSet()
+		if l.EventPerSec > 0 {
+			ticker = tickerForEvent(l.EventPerSec, jitter)
+		} else if l.BytePerSec > 0 {
+			ticker = tickerForByte(l.BytePerSec, jitter)
+		}
+		count := viper.GetInt("message.count")
 
-	for {
-		select {
-		case <-done:
-			return
-		case <-ticker.C:
+		if len(viper.GetString("destination.network")) != 0 {
+			l.writer = newNetworkWriter(viper.GetString("destination.network"), viper.GetString("destination.address"))
+		} else {
+			l.writer = newStdoutWriter()
+		}
+
+		l.golangSet()
+
+		for range ticker.C {
 			var n formats.Log
 			var err error
 			if counter < count && viper.GetBool("nginx.enabled") {
@@ -280,7 +276,7 @@ func (l *LogGen) Run() {
 				if err != nil {
 					log.Panic(err)
 				}
-				emitMessage(n)
+				l.writer.Send(n)
 				counter++
 			}
 			if counter < count && viper.GetBool("apache.enabled") {
@@ -293,25 +289,31 @@ func (l *LogGen) Run() {
 				if err != nil {
 					log.Panic(err)
 				}
-				emitMessage(n)
+				l.writer.Send(n)
 				counter++
 			}
 			if counter < count && viper.GetBool("golang.enabled") {
 				n = formats.NewGolangRandom(l.GolangLog)
-				emitMessage(n)
+				l.writer.Send(n)
 				counter++
 			}
 
 			pendingRequests := l.processRequests()
 
-			// If we have count check counter
 			if !pendingRequests && count > 0 && !(counter < count) {
 				done <- true
+				break
 			}
-		case <-interrupt:
-			log.Infoln("Recieved interrupt")
-			return
-
 		}
+
+		l.writer.Close()
+	}()
+
+	select {
+	case <-interrupt:
+		log.Infoln("Recieved interrupt")
+		break
+	case <-done:
+		break
 	}
 }
