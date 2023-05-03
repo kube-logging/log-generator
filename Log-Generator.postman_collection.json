@@ -9,6 +9,95 @@
 			"name": "Test",
 			"item": [
 				{
+					"name": "Loggen",
+					"item": [
+						{
+							"name": "loggen",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{baseUrl}}/loggen",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loggen"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "loggen",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Content test\", () => {",
+											"  const responseJson = pm.response.json();",
+											"  pm.expect(responseJson.type).to.eql(\"syslog\");",
+											"  pm.expect(responseJson.format).to.eql(\"cisco.ios\");",
+											"  pm.expect(responseJson.count).to.eql(5);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"type\": \"syslog\", \"format\": \"cisco.ios\", \"count\": 5 }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/loggen",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"loggen"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Memory",
 					"item": [
 						{
@@ -38,12 +127,11 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/memory",
+									"raw": "{{baseUrl}}/memory",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"memory"
 									]
 								}
@@ -84,12 +172,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/memory",
+									"raw": "{{baseUrl}}/memory",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"memory"
 									]
 								}
@@ -120,12 +207,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/state/cpu",
+									"raw": "{{baseUrl}}/cpu",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"cpu"
 									]
 								}
@@ -167,12 +253,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/cpu",
+									"raw": "{{baseUrl}}/cpu",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"cpu"
 									]
 								}
@@ -215,12 +300,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/log_level",
+									"raw": "{{baseUrl}}/log_level",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"log_level"
 									]
 								}
@@ -260,12 +344,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state/log_level",
+									"raw": "{{baseUrl}}/log_level",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state",
 										"log_level"
 									]
 								}
@@ -297,12 +380,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/state",
+									"raw": "{{baseUrl}}",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state"
+										"/"
 									]
 								}
 							},
@@ -346,12 +429,12 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/state",
+									"raw": "{{baseUrl}}",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"state"
+										"/"
 									]
 								}
 							},

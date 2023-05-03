@@ -30,14 +30,13 @@ type LogLevel struct {
 }
 
 type State struct {
-	Memory   stress.Memory `json:"memory"`
-	Cpu      stress.CPU    `json:"cpu"`
-	LogLevel LogLevel      `json:"log_level"`
-	Loggen   loggen.LogGen `json:"loggen"`
+	Memory   stress.Memory  `json:"memory"`
+	Cpu      stress.CPU     `json:"cpu"`
+	LogLevel LogLevel       `json:"log_level"`
+	Loggen   *loggen.LogGen `json:"loggen"`
 }
 
 func (s *State) logLevelGetHandler(c *gin.Context) {
-	s.LogLevel.Level = log.GetLevel().String()
 	c.JSON(http.StatusOK, s.LogLevel)
 }
 
@@ -63,6 +62,7 @@ func (s *State) logLevelPatchHandler(c *gin.Context) {
 	err := s.logLevelSet()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 
 	}
 	c.JSON(http.StatusOK, s.LogLevel)
@@ -112,25 +112,27 @@ func main() {
 	flag.Parse()
 
 	var s State
+	s.Loggen = loggen.New()
+	s.LogLevel.Level = log.GetLevel().String()
 
 	go func() {
 		log.Debugf("api listen on: %s, basePath: %s", apiAddr, apiBasePath)
 		r := gin.New()
 		api := r.Group(apiBasePath)
-		api.GET("/", func(c *gin.Context) {
-			c.JSON(200, "/ - OK!")
-		})
 		api.GET("metrics", metrics.Handler())
-		api.GET("state", s.stateGetHandler)
-		api.PATCH("state", s.statePatchHandler)
-		api.GET("state/memory", s.Memory.GetHandler)
-		api.PATCH("state/memory", s.Memory.PatchHandler)
-		api.GET("state/cpu", s.Cpu.GetHandler)
-		api.PATCH("state/cpu", s.Cpu.PatchHandler)
-		api.GET("state/log_level", s.logLevelGetHandler)
-		api.PATCH("state/log_level", s.logLevelPatchHandler)
-		api.GET("state/golang", s.Loggen.GolangGetHandler)
-		api.PATCH("state/golang", s.Loggen.GolangPatchHandler)
+		api.GET("/", s.stateGetHandler)
+		api.PATCH("/", s.statePatchHandler)
+		api.GET("/loggen", s.Loggen.GetHandler)
+		api.POST("/loggen", s.Loggen.PostHandler)
+		api.GET("/loggen/formats", s.Loggen.FormatsGetHandler)
+		api.GET("/memory", s.Memory.GetHandler)
+		api.PATCH("/memory", s.Memory.PatchHandler)
+		api.GET("/cpu", s.Cpu.GetHandler)
+		api.PATCH("/cpu", s.Cpu.PatchHandler)
+		api.GET("/log_level", s.logLevelGetHandler)
+		api.PATCH("/log_level", s.logLevelPatchHandler)
+		api.GET("/golang", s.Loggen.GolangGetHandler)
+		api.PATCH("/golang", s.Loggen.GolangPatchHandler)
 		api.GET("exceptions/go", exceptionsGoCall)
 		api.PATCH("exceptions/go", exceptionsGoCall)
 

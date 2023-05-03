@@ -36,15 +36,8 @@ func Init() {
 	viper.SetDefault("api.basePath", "/")
 
 	viper.SetDefault("nginx.enabled", false)
-	viper.SetDefault("nginx.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
-	viper.SetDefault("nginx.time_format", "02/Jan/2006:15:04:05 -0700")
-
 	viper.SetDefault("apache.enabled", false)
-	viper.SetDefault("apache.output_format", "{{.Remote}} {{.Host}} {{.User}} [{{.Time}}] {{.User}} \"{{.Method}} {{.Path}} HTTP/1.1\" {{.Code}} {{.Size}} \"{{.Referer}}\" \"{{.Agent}}\" \"{{.HttpXForwardedFor}}\"")
-	viper.SetDefault("apache.time_format", "02/Jan/2006:15:04:05 -0700")
-
 	viper.SetDefault("golang.enabled", false)
-	viper.SetDefault("golang.output_format", "{{.Environment}} {{.Application}} {{.Component}} [{{.Time}}] {{.Level}} \"{{.MSG}}\"")
 	viper.SetDefault("golang.time_format", "02/Jan/2006:15:04:05 -0700")
 	viper.SetDefault("golang.weight.error", 0)
 	viper.SetDefault("golang.weight.info", 1)

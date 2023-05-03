@@ -1,6 +1,6 @@
 // Copyright (c) 2021 Cisco All Rights Reserved.
 
-package formats
+package golang
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ type GolangLog struct {
 	Time        string `json:"time"`
 }
 
-func (g GolangLog) NewRandomMessage() string {
+func (g GolangLog) newRandomMessage() string {
 	msgList := map[string]string{
 		"info": randomdata.StringSample(
 			"constructing many client instances from the same exec auth config can cause performance problems during cert rotation and can exhaust available network connections; 1083 clients constructed calling",
@@ -75,7 +75,7 @@ func NewGolangLogRandom(i GolangLogIntensity) GolangLog {
 
 func (g GolangLog) String() (string, float64) {
 	g.Time = time.Now().Format(viper.GetString("golang.time_format"))
-	g.MSG = g.NewRandomMessage()
+	g.MSG = g.newRandomMessage()
 
 	out, err := json.MarshalIndent(g, "", "  ")
 	if err != nil {
@@ -94,7 +94,7 @@ func (g GolangLog) String() (string, float64) {
 
 func (g GolangLog) Labels() prometheus.Labels {
 	return prometheus.Labels{
-		"type": "golang",
+		"type":     "golang",
 		"severity": g.Level,
 	}
 }
