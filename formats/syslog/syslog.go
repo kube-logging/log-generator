@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/spf13/viper"
 )
 
 //go:embed *.tmpl
@@ -64,8 +65,8 @@ func RandomData() TemplateData {
 		Facility: randomdata.Number(0, 24),
 		severity: randomdata.Number(0, 8),
 		dateTime: time.Now().UTC(),
-		Host:     fmt.Sprintf("%s-%s", randomdata.Adjective(), randomdata.Noun()),
-		AppName:  randomdata.Adjective(),
+		Host:     fmt.Sprintf("host-%d", randomdata.Number(viper.GetInt("message.max-random-hosts"))+1),
+		AppName:  fmt.Sprintf("app%d", randomdata.Number(viper.GetInt("message.max-random-apps"))+1),
 		PID:      randomdata.Number(1, 10000),
 		Seq:      randomdata.Number(1, 10000),
 		Msg:      fmt.Sprintf("An application event log entry %s %s", randomdata.Noun(), randomdata.Noun()),

@@ -31,6 +31,8 @@ func Init() {
 	viper.SetDefault("message.randomise", true)
 	viper.SetDefault("message.event-per-sec", 2)
 	viper.SetDefault("message.byte-per-sec", 200)
+	viper.SetDefault("message.max-random-hosts", 1000)
+	viper.SetDefault("message.max-random-apps", 100)
 
 	viper.SetDefault("api.addr", ":11000")
 	viper.SetDefault("api.basePath", "/")
