@@ -2,7 +2,7 @@
 #level = "debug"
 
 [message]
-# The amount of log message to emit. (default: 0)
+# The amount of log message to emit. (default: 0) -1 to emit logs indefinitely.
 # count =
 
 # Randomise log content (default: true)
@@ -17,5 +17,8 @@
 [api]
 # Metrics server listen address (default: "":11000")
 #addr =
-(default: "/")
+# default: "/"
 #basePath =
+
+#[nginx]
+#enabled = true

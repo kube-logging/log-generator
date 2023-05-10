@@ -277,40 +277,29 @@ func (l *LogGen) Run() {
 		l.golangSet()
 
 		for range ticker.C {
-			var n formats.Log
-			var err error
-			if counter < count && viper.GetBool("nginx.enabled") {
-				if l.Randomise {
-					n, err = formats.NewRandomWeb("nginx")
-				} else {
-					n, err = formats.NewWeb("nginx")
-				}
-
-				if err != nil {
-					log.Panic(err)
-				}
-				l.writer.Send(n)
-				counter++
+			if viper.GetBool("nginx.enabled") {
+				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+					if l.Randomise {
+						return formats.NewRandomWeb("nginx")
+					} else {
+						return formats.NewWeb("nginx")
+					}
+				})
 			}
-			if counter < count && viper.GetBool("apache.enabled") {
-				if l.Randomise {
-					n, err = formats.NewRandomWeb("apache")
-				} else {
-					n, err = formats.NewWeb("apache")
-				}
-
-				if err != nil {
-					log.Panic(err)
-				}
-				l.writer.Send(n)
-				counter++
+			if viper.GetBool("apache.enabled") {
+				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+					if l.Randomise {
+						return formats.NewRandomWeb("apache")
+					} else {
+						return formats.NewWeb("apache")
+					}
+				})
 			}
-			if counter < count && viper.GetBool("golang.enabled") {
-				n = formats.NewGolangRandom(l.GolangLog)
-				l.writer.Send(n)
-				counter++
+			if viper.GetBool("golang.enabled") {
+				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+					return formats.NewGolangRandom(l.GolangLog), nil
+				})
 			}
-
 			pendingRequests := l.processRequests()
 
 			if !pendingRequests && count > 0 && !(counter < count) {
@@ -328,5 +317,16 @@ func (l *LogGen) Run() {
 		break
 	case <-done:
 		break
+	}
+}
+
+func (l *LogGen) sendIfCount(count int, counter *int, f func() (formats.Log, error)) {
+	if count == -1 || *counter < count {
+		n, err := f()
+		if err != nil {
+			log.Panic(err)
+		}
+		l.writer.Send(n)
+		*counter++
 	}
 }

@@ -21,6 +21,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/cenkalti/backoff/v4"
+
 	"github.com/kube-logging/log-generator/formats"
 	"github.com/kube-logging/log-generator/metrics"
 )

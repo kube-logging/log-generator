@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/dhoomakethu/stress v0.0.0-20210419083025-aaf0fe4f03ce
 	github.com/gin-gonic/gin v1.9.0
 	github.com/lthibault/jitterbug v2.0.0+incompatible
