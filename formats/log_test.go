@@ -7,8 +7,8 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/banzaicloud/log-generator/formats/syslog"
-	"github.com/banzaicloud/log-generator/formats/web"
+	"github.com/kube-logging/log-generator/formats/syslog"
+	"github.com/kube-logging/log-generator/formats/web"
 )
 
 type LogConstructor func(string) (*LogTemplate, error)

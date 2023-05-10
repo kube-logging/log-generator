@@ -7,9 +7,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/banzaicloud/log-generator/formats"
-	"github.com/banzaicloud/log-generator/metrics"
-	"github.com/cenkalti/backoff/v4"
+	"github.com/kube-logging/log-generator/formats"
+	"github.com/kube-logging/log-generator/metrics"
 	log "github.com/sirupsen/logrus"
 )
 

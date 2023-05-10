@@ -9,13 +9,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/banzaicloud/log-generator/conf"
-	"github.com/banzaicloud/log-generator/loggen"
-	"github.com/banzaicloud/log-generator/metrics"
-	"github.com/banzaicloud/log-generator/stress"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/kube-logging/log-generator/conf"
+	"github.com/kube-logging/log-generator/loggen"
+	"github.com/kube-logging/log-generator/metrics"
+	"github.com/kube-logging/log-generator/stress"
 )
 
 func init() {

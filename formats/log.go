@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/banzaicloud/log-generator/formats/golang"
-	"github.com/banzaicloud/log-generator/formats/syslog"
-	"github.com/banzaicloud/log-generator/formats/web"
+	"github.com/kube-logging/log-generator/formats/golang"
+	"github.com/kube-logging/log-generator/formats/syslog"
+	"github.com/kube-logging/log-generator/formats/web"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

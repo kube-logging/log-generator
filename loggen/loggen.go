@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/banzaicloud/log-generator/formats"
-	"github.com/banzaicloud/log-generator/formats/golang"
 	"github.com/gin-gonic/gin"
+	"github.com/kube-logging/log-generator/formats"
+	"github.com/kube-logging/log-generator/formats/golang"
 	"github.com/lthibault/jitterbug"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -244,7 +244,7 @@ func (l *LogGen) Run() {
 		var counter = 0
 		var ticker *jitterbug.Ticker
 
-		//jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
+		// jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
 		// TODO find a way to set Jitter from params
 		jitter := &jitterbug.Norm{}
 

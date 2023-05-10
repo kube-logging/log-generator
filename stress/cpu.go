@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/banzaicloud/log-generator/metrics"
 	"github.com/dhoomakethu/stress/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/kube-logging/log-generator/metrics"
 	log "github.com/sirupsen/logrus"
 )
 
