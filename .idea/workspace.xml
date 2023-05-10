@@ -5,23 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a4752cbd-3549-4b60-8525-d55e94d99e89" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.licensei.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.licensei.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf/configuration.go" beforeDir="false" afterPath="$PROJECT_DIR$/conf/configuration.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formats/golang/golang.go" beforeDir="false" afterPath="$PROJECT_DIR$/formats/golang/golang.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formats/log.go" beforeDir="false" afterPath="$PROJECT_DIR$/formats/log.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formats/log_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/formats/log_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formats/syslog/syslog.go" beforeDir="false" afterPath="$PROJECT_DIR$/formats/syslog/syslog.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formats/template.go" beforeDir="false" afterPath="$PROJECT_DIR$/formats/template.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formats/web/web.go" beforeDir="false" afterPath="$PROJECT_DIR$/formats/web/web.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/loggen/loggen.go" beforeDir="false" afterPath="$PROJECT_DIR$/loggen/loggen.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/loggen/writers.go" beforeDir="false" afterPath="$PROJECT_DIR$/loggen/writers.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/metrics/metrics.go" beforeDir="false" afterPath="$PROJECT_DIR$/metrics/metrics.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stress/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/stress/cpu.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stress/memory.go" beforeDir="false" afterPath="$PROJECT_DIR$/stress/memory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/license.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/license.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,13 +37,18 @@
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/peterwilcsinszky&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/peterwilcsinszky/src/github.com/kube-logging/log-generator/.github/workflows&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;go.vgo&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/.github/workflows" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
