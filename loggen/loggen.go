@@ -1,4 +1,16 @@
-// Copyright (c) 2023 Cisco All Rights Reserved.
+// Copyright © 2023 Kube logging authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License."""
 
 package loggen
 
@@ -13,12 +25,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/banzaicloud/log-generator/formats"
-	"github.com/banzaicloud/log-generator/formats/golang"
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/kube-logging/log-generator/formats"
+	"github.com/kube-logging/log-generator/formats/golang"
 )
 
 type List struct {
@@ -244,7 +257,7 @@ func (l *LogGen) Run() {
 		var counter = 0
 		var ticker *jitterbug.Ticker
 
-		//jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
+		// jitter := &jitterbug.Norm{Stdev: time.Millisecond * 300}
 		// TODO find a way to set Jitter from params
 		jitter := &jitterbug.Norm{}
 
@@ -264,40 +277,29 @@ func (l *LogGen) Run() {
 		l.golangSet()
 
 		for range ticker.C {
-			var n formats.Log
-			var err error
-			if counter < count && viper.GetBool("nginx.enabled") {
-				if l.Randomise {
-					n, err = formats.NewRandomWeb("nginx")
-				} else {
-					n, err = formats.NewWeb("nginx")
-				}
-
-				if err != nil {
-					log.Panic(err)
-				}
-				l.writer.Send(n)
-				counter++
+			if viper.GetBool("nginx.enabled") {
+				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+					if l.Randomise {
+						return formats.NewRandomWeb("nginx")
+					} else {
+						return formats.NewWeb("nginx")
+					}
+				})
 			}
-			if counter < count && viper.GetBool("apache.enabled") {
-				if l.Randomise {
-					n, err = formats.NewRandomWeb("apache")
-				} else {
-					n, err = formats.NewWeb("apache")
-				}
-
-				if err != nil {
-					log.Panic(err)
-				}
-				l.writer.Send(n)
-				counter++
+			if viper.GetBool("apache.enabled") {
+				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+					if l.Randomise {
+						return formats.NewRandomWeb("apache")
+					} else {
+						return formats.NewWeb("apache")
+					}
+				})
 			}
-			if counter < count && viper.GetBool("golang.enabled") {
-				n = formats.NewGolangRandom(l.GolangLog)
-				l.writer.Send(n)
-				counter++
+			if viper.GetBool("golang.enabled") {
+				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+					return formats.NewGolangRandom(l.GolangLog), nil
+				})
 			}
-
 			pendingRequests := l.processRequests()
 
 			if !pendingRequests && count > 0 && !(counter < count) {
@@ -315,5 +317,16 @@ func (l *LogGen) Run() {
 		break
 	case <-done:
 		break
+	}
+}
+
+func (l *LogGen) sendIfCount(count int, counter *int, f func() (formats.Log, error)) {
+	if count == -1 || *counter < count {
+		n, err := f()
+		if err != nil {
+			log.Panic(err)
+		}
+		l.writer.Send(n)
+		*counter++
 	}
 }

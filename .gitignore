@@ -90,6 +90,7 @@ testbin
 
 #Config
 conf/config.toml
+conf/config.ini
 
 .licensei.cache
 

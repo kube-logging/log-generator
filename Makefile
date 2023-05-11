@@ -3,7 +3,7 @@ BIN := ${PWD}/bin
 export PATH := ${BIN}:${PATH}
 
 LICENSEI := ${BIN}/licensei
-LICENSEI_VERSION = v0.4.0
+LICENSEI_VERSION = v0.8.0
 
 ${BIN}:
 	mkdir -p ${BIN}
