@@ -15,7 +15,7 @@
 #byte-per-sec =
 
 [api]
-# Metrics server listen address (default: "":11000")
+# Server listen address (default: "":11000")
 #addr =
 # default: "/"
 #basePath =

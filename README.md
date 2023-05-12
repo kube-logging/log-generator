@@ -6,14 +6,14 @@ _API managed testing tool for logging-operator_
 Add the chart repository of the Log-generator using the following commands:
 
 ```sh
-helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
+helm repo add kube-logging https://kube-logging.github.io/helm-charts
 helm repo update
 ```
 
 ### Install the Log-generator.
 
 ```sh
-helm install --wait --generate-name banzaicloud-stable/log-generator
+helm install log-generator kube-logging/log-generator
 ```
 
 
