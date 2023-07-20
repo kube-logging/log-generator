@@ -2,6 +2,8 @@
 BIN := ${PWD}/bin
 export PATH := ${BIN}:${PATH}
 
+CUSTOM_FORMATS := formats/custom
+
 LICENSEI := ${BIN}/licensei
 LICENSEI_VERSION = v0.8.0
 
@@ -19,6 +21,13 @@ license-cache: ${LICENSEI} ## Generate license cache
 
 .PHONY: check
 check: license-cache license-check
+
+go.work:
+	go work init . ${CUSTOM_FORMATS}
+
+.PHONY:
+build: go.work
+	CGO_ENABLED=0 go build -a -o ${BIN}/loggen main.go
 
 ${LICENSEI}: ${LICENSEI}_${LICENSEI_VERSION} | ${BIN}
 	ln -sf $(notdir $<) $@

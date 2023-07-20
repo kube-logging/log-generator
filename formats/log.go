@@ -15,6 +15,8 @@
 package formats
 
 import (
+	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"strings"
@@ -22,6 +24,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
+	"github.com/kube-logging/log-generator/formats/custom"
 	"github.com/kube-logging/log-generator/formats/golang"
 	"github.com/kube-logging/log-generator/formats/syslog"
 	"github.com/kube-logging/log-generator/formats/web"
@@ -58,6 +61,44 @@ func NewSyslog(format string) (*LogTemplate, error) {
 
 func NewRandomSyslog(format string) (*LogTemplate, error) {
 	return newLogTemplate(format, syslog.TemplateFS, syslog.RandomData())
+}
+
+func FormatsByType() map[string][]string {
+	response := map[string][]string{}
+	for t, f := range custom.Formats() {
+		response[t] = f
+	}
+	response["syslog"] = SyslogFormatNames()
+	response["web"] = WebFormatNames()
+	return response
+}
+
+func LogFactory(logType string, format string, randomise bool) (Log, error) {
+	switch logType {
+	case "syslog":
+		if randomise {
+			return NewRandomSyslog(format)
+		} else {
+			return NewSyslog(format)
+		}
+	case "web":
+		if randomise {
+			return NewRandomWeb(format)
+		} else {
+			return NewWeb(format)
+		}
+	default:
+		for t, f := range custom.Formats() {
+			if t == logType {
+				if containsItem(f, format) {
+					return custom.LogFactory(logType, format, randomise)
+				} else {
+					return nil, errors.New(fmt.Sprintf("unsupported custom format %s", format))
+				}
+			}
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("unsupported type %s", logType))
 }
 
 func SyslogFormatNames() []string {
@@ -119,4 +160,13 @@ func (l *LogTemplate) Labels() prometheus.Labels {
 		"type":     l.Format,
 		"severity": l.data.Severity(),
 	}
+}
+
+func containsItem(list []string, item string) bool {
+	for _, i := range list {
+		if i == item {
+			return true
+		}
+	}
+	return false
 }

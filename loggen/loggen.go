@@ -86,11 +86,7 @@ func (l *List) MarshalJSON() ([]byte, error) {
 }
 
 func (l *LogGen) FormatsGetHandler(ctx *gin.Context) {
-	response := map[string][]string{}
-	response["syslog"] = formats.SyslogFormatNames()
-	response["web"] = formats.WebFormatNames()
-
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, formats.FormatsByType())
 }
 
 func (l *LogGen) GetHandler(ctx *gin.Context) {
@@ -122,38 +118,27 @@ func (l *LogGen) PostHandler(ctx *gin.Context) {
 }
 
 func (lr *LogGenRequest) Validate() error {
-	if _, exists := formats.Types[lr.Type]; !exists {
-		return fmt.Errorf("type %q does not exist", lr.Type)
+	for t, _ := range formats.FormatsByType() {
+		if t == lr.Type {
+			return nil
+		}
 	}
-
-	return nil
+	return fmt.Errorf("type %q does not exist", lr.Type)
 }
 
-func (lr *LogGenRequest) process(l *LogGen) formats.Log {
+func (lr *LogGenRequest) process(lg *LogGen) formats.Log {
 	if lr.Count <= 0 {
 		return nil
 	}
 
-	// TODO: factory
-	var msg formats.Log
-	var err error
-	switch lr.Type {
-	case "syslog":
-		if l.Randomise {
-			msg, err = formats.NewRandomSyslog(lr.Format)
-		} else {
-			msg, err = formats.NewSyslog(lr.Format)
-		}
-	case "web":
-		if l.Randomise {
-			msg, err = formats.NewRandomWeb(lr.Format)
-		} else {
-			msg, err = formats.NewWeb(lr.Format)
-		}
-	case "golang":
-		msg = formats.NewGolangRandom(l.GolangLog)
-	default:
-		log.Panic("invalid LogGenRequest type")
+	// TODO configuration management for custom formats?
+	if lr.Type == "golang" {
+		return formats.NewGolangRandom(lg.GolangLog)
+	}
+
+	msg, err := formats.LogFactory(lr.Type, lr.Format, lg.Randomise)
+	if err != nil {
+		log.Panic(err)
 	}
 
 	if err != nil {
@@ -253,6 +238,8 @@ func (l *LogGen) Run() {
 	done := make(chan bool, 1)
 
 	go func() {
+
+		// TODO implement main loop for custom formats?
 
 		var counter = 0
 		var ticker *jitterbug.Ticker
