@@ -26,8 +26,17 @@ go.work:
 	go work init . ${CUSTOM_FORMATS}
 
 .PHONY:
+reinit:
+	rm -f go.work
+	@$(MAKE) go.work
+
+.PHONY:
 build: go.work
 	CGO_ENABLED=0 go build -a -o ${BIN}/loggen main.go
+
+.PHONY:
+docker-run:
+	docker build . -t log-generator:local && docker run -p 11000:11000 log-generator:local
 
 ${LICENSEI}: ${LICENSEI}_${LICENSEI_VERSION} | ${BIN}
 	ln -sf $(notdir $<) $@

@@ -96,4 +96,5 @@ conf/config.ini
 
 .DS_Store
 
+formats/custom-impl
 go.work*
