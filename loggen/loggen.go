@@ -138,7 +138,8 @@ func (lr *LogGenRequest) process(lg *LogGen) formats.Log {
 
 	msg, err := formats.LogFactory(lr.Type, lr.Format, lg.Randomise)
 	if err != nil {
-		log.Panic(err)
+		log.Error(err)
+		return nil
 	}
 
 	if err != nil {
