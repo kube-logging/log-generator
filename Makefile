@@ -25,16 +25,20 @@ check: license-cache license-check
 go.work:
 	go work init . ${CUSTOM_FORMATS}
 
-.PHONY:
+.PHONY: reinit
 reinit:
 	rm -f go.work
 	@$(MAKE) go.work
 
-.PHONY:
+.PHONY: build
 build: go.work
 	CGO_ENABLED=0 go build -a -o ${BIN}/loggen main.go
 
-.PHONY:
+.PHONY: test
+test: go.work
+	go test ./...
+
+.PHONY: docker-run
 docker-run:
 	docker build . -t log-generator:local && docker run -p 11000:11000 log-generator:local
 
