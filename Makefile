@@ -7,6 +7,8 @@ CUSTOM_FORMATS := formats/custom
 LICENSEI := ${BIN}/licensei
 LICENSEI_VERSION = v0.8.0
 
+GOFLAGS =
+
 ${BIN}:
 	mkdir -p ${BIN}
 
@@ -32,11 +34,11 @@ reinit:
 
 .PHONY: build
 build: go.work
-	CGO_ENABLED=0 go build -a -o ${BIN}/loggen main.go
+	CGO_ENABLED=0 go build ${GOFLAGS} -a -o ${BIN}/loggen main.go
 
 .PHONY: test
 test: go.work
-	go test ./...
+	go test ${GOFLAGS} ./...
 
 .PHONY: docker-run
 docker-run:
