@@ -22,9 +22,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Init
-        run: make go.work
-
       - name: Gather metadata
         id: meta
         uses: docker/metadata-action@v4

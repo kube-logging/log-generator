@@ -18,7 +18,7 @@ license-check: ${LICENSEI} ## Run license check
 	${LICENSEI} header
 
 .PHONY: license-cache
-license-cache: ${LICENSEI} ## Generate license cache
+license-cache: ${LICENSEI} go.work ## Generate license cache
 	${LICENSEI} cache
 
 .PHONY: check
