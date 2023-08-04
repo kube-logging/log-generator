@@ -12,14 +12,70 @@
 // See the License for the specific language governing permissions and
 // limitations under the License."""
 
-package formats
+package log
 
 import (
 	"fmt"
 	"io/fs"
 	"strings"
 	"text/template"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+type LogTemplateData interface {
+	Severity() string
+}
+
+type LogTemplate struct {
+	Format string
+
+	template *template.Template
+	data     LogTemplateData
+}
+
+func NewLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate, error) {
+	template, err := loadTemplate(format, fs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LogTemplate{
+		Format:   format,
+		template: template,
+		data:     data,
+	}, nil
+}
+
+func FormatNames(fs fs.FS) []string {
+	formats := []string{}
+
+	for _, t := range LoadAllTemplates(fs) {
+		formats = append(formats, strings.TrimSuffix(t.Name(), ".tmpl"))
+	}
+
+	return formats
+}
+
+func (l *LogTemplate) String() (string, float64) {
+	var b strings.Builder
+	if err := l.template.Execute(&b, l.data); err != nil {
+		log.Panic(err.Error())
+	}
+
+	str := strings.TrimSuffix(b.String(), "\n")
+
+	return str, float64(len([]byte(str)))
+}
+
+func (l *LogTemplate) Labels() prometheus.Labels {
+	return prometheus.Labels{
+		"type":     l.Format,
+		"severity": l.data.Severity(),
+	}
+}
 
 func loadTemplate(name string, fs fs.FS) (*template.Template, error) {
 	// syslog.rfc5424.sdata => syslog.tmpl
@@ -44,6 +100,6 @@ func loadTemplate(name string, fs fs.FS) (*template.Template, error) {
 	return nil, fmt.Errorf("could not find format %q", name)
 }
 
-func loadAllTemplates(fs fs.FS) []*template.Template {
+func LoadAllTemplates(fs fs.FS) []*template.Template {
 	return template.Must(template.ParseFS(fs, "*.tmpl")).Templates()
 }

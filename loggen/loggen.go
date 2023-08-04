@@ -27,11 +27,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
-	log "github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/kube-logging/log-generator/formats"
 	"github.com/kube-logging/log-generator/formats/golang"
+	"github.com/kube-logging/log-generator/log"
 )
 
 type List struct {
@@ -99,7 +100,7 @@ func (l *LogGen) GetHandler(ctx *gin.Context) {
 func (l *LogGen) PostHandler(ctx *gin.Context) {
 	var lr LogGenRequest
 	if err := ctx.ShouldBindJSON(&lr); err != nil {
-		log.Error(err.Error())
+		logger.Error(err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -126,7 +127,7 @@ func (lr *LogGenRequest) Validate() error {
 	return fmt.Errorf("type %q does not exist", lr.Type)
 }
 
-func (lr *LogGenRequest) process(lg *LogGen) formats.Log {
+func (lr *LogGenRequest) process(lg *LogGen) log.Log {
 	if lr.Count <= 0 {
 		return nil
 	}
@@ -143,7 +144,7 @@ func (lr *LogGenRequest) process(lg *LogGen) formats.Log {
 	}
 
 	if err != nil {
-		log.Warnf("Error generating log from request %v, %v", lr, err)
+		logger.Warnf("Error generating log from request %v, %v", lr, err)
 		return nil
 	}
 
@@ -171,7 +172,7 @@ func (l *LogGen) GolangGetHandler(c *gin.Context) {
 
 func (l *LogGen) GolangPatchHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&l.GolangLog); err != nil {
-		log.Error(err.Error())
+		logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -203,7 +204,7 @@ func (l *LogGen) golangSet() error {
 
 func (l *LogGen) processRequests() bool {
 	l.m.Lock()
-	logs := make([]formats.Log, 0, l.ActiveRequests.Len())
+	logs := make([]log.Log, 0, l.ActiveRequests.Len())
 
 	e := l.ActiveRequests.Front()
 	for e != nil {
@@ -266,7 +267,7 @@ func (l *LogGen) Run() {
 
 		for range ticker.C {
 			if viper.GetBool("nginx.enabled") {
-				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
 						return formats.NewRandomWeb("nginx")
 					} else {
@@ -275,7 +276,7 @@ func (l *LogGen) Run() {
 				})
 			}
 			if viper.GetBool("apache.enabled") {
-				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
 						return formats.NewRandomWeb("apache")
 					} else {
@@ -284,7 +285,7 @@ func (l *LogGen) Run() {
 				})
 			}
 			if viper.GetBool("golang.enabled") {
-				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					return formats.NewGolangRandom(l.GolangLog), nil
 				})
 			}
@@ -301,18 +302,18 @@ func (l *LogGen) Run() {
 
 	select {
 	case <-interrupt:
-		log.Infoln("Recieved interrupt")
+		logger.Infoln("Recieved interrupt")
 		break
 	case <-done:
 		break
 	}
 }
 
-func (l *LogGen) sendIfCount(count int, counter *int, f func() (formats.Log, error)) {
+func (l *LogGen) sendIfCount(count int, counter *int, f func() (log.Log, error)) {
 	if count == -1 || *counter < count {
 		n, err := f()
 		if err != nil {
-			log.Panic(err)
+			logger.Panic(err)
 		}
 		l.writer.Send(n)
 		*counter++
