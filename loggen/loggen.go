@@ -137,10 +137,6 @@ func (lr *LogGenRequest) process(lg *LogGen) log.Log {
 	}
 
 	msg, err := formats.LogFactory(lr.Type, lr.Format, lg.Randomise)
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
 
 	if err != nil {
 		logger.Warnf("Error generating log from request %v, %v", lr, err)
