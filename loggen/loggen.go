@@ -119,12 +119,11 @@ func (l *LogGen) PostHandler(ctx *gin.Context) {
 }
 
 func (lr *LogGenRequest) Validate() error {
-	for t, _ := range formats.FormatsByType() {
-		if t == lr.Type {
-			return nil
-		}
+	if _, exists := formats.FormatsByType()[lr.Type]; !exists {
+		return fmt.Errorf("type %q does not exist", lr.Type)
 	}
-	return fmt.Errorf("type %q does not exist", lr.Type)
+
+	return nil
 }
 
 func (lr *LogGenRequest) process(lg *LogGen) log.Log {
