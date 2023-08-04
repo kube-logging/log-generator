@@ -21,15 +21,16 @@ import (
 
 	"github.com/kube-logging/log-generator/formats/syslog"
 	"github.com/kube-logging/log-generator/formats/web"
+	"github.com/kube-logging/log-generator/log"
 )
 
-type LogConstructor func(string) (*LogTemplate, error)
+type LogConstructor func(string) (*log.LogTemplate, error)
 
 func TestSyslogFormats(t *testing.T) {
 	// Separate Template tree per directory because Go Template can not handle
 	// multiple files with the same name in different directories.
 
-	syslogTemplates := loadAllTemplates(syslog.TemplateFS)
+	syslogTemplates := log.LoadAllTemplates(syslog.TemplateFS)
 	assertFormatAll(t, syslogTemplates, NewSyslog)
 }
 
@@ -37,7 +38,7 @@ func TestWebFormats(t *testing.T) {
 	// Separate Template tree per directory because Go Template can not handle
 	// multiple files with the same name in different directories.
 
-	webTemplates := loadAllTemplates(web.TemplateFS)
+	webTemplates := log.LoadAllTemplates(web.TemplateFS)
 	assertFormatAll(t, webTemplates, NewWeb)
 }
 

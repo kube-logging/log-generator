@@ -12,34 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License."""
 
-package formats
+package log
 
 import (
+	"fmt"
 	"io/fs"
-	"log"
 	"strings"
 	"text/template"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/kube-logging/log-generator/formats/golang"
-	"github.com/kube-logging/log-generator/formats/syslog"
-	"github.com/kube-logging/log-generator/formats/web"
 )
-
-// TODO: factory
-type void = struct{}
-
-var Types = map[string]struct{}{
-	"golang": void{},
-	"syslog": void{},
-	"web":    void{},
-}
-
-type Log interface {
-	String() (string, float64)
-	Labels() prometheus.Labels
-}
 
 type LogTemplateData interface {
 	Severity() string
@@ -52,35 +36,7 @@ type LogTemplate struct {
 	data     LogTemplateData
 }
 
-func NewSyslog(format string) (*LogTemplate, error) {
-	return newLogTemplate(format, syslog.TemplateFS, syslog.SampleData())
-}
-
-func NewRandomSyslog(format string) (*LogTemplate, error) {
-	return newLogTemplate(format, syslog.TemplateFS, syslog.RandomData())
-}
-
-func SyslogFormatNames() []string {
-	return formatNames(syslog.TemplateFS)
-}
-
-func NewWeb(format string) (*LogTemplate, error) {
-	return newLogTemplate(format, web.TemplateFS, web.SampleData())
-}
-
-func NewRandomWeb(format string) (*LogTemplate, error) {
-	return newLogTemplate(format, web.TemplateFS, web.RandomData())
-}
-
-func WebFormatNames() []string {
-	return formatNames(web.TemplateFS)
-}
-
-func NewGolangRandom(i golang.GolangLogIntensity) Log {
-	return golang.NewGolangLogRandom(i)
-}
-
-func newLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate, error) {
+func NewLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate, error) {
 	template, err := loadTemplate(format, fs)
 	if err != nil {
 		return nil, err
@@ -93,10 +49,10 @@ func newLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate
 	}, nil
 }
 
-func formatNames(fs fs.FS) []string {
+func FormatNames(fs fs.FS) []string {
 	formats := []string{}
 
-	for _, t := range loadAllTemplates(fs) {
+	for _, t := range LoadAllTemplates(fs) {
 		formats = append(formats, strings.TrimSuffix(t.Name(), ".tmpl"))
 	}
 
@@ -119,4 +75,31 @@ func (l *LogTemplate) Labels() prometheus.Labels {
 		"type":     l.Format,
 		"severity": l.data.Severity(),
 	}
+}
+
+func loadTemplate(name string, fs fs.FS) (*template.Template, error) {
+	// syslog.rfc5424.sdata => syslog.tmpl
+	templateFileName, _, structuredFormatName := strings.Cut(name, ".")
+	templateFileName += ".tmpl"
+
+	template, err := template.ParseFS(fs, templateFileName)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse format %q, %v", name, err)
+	}
+
+	if t := template.Lookup(name); t != nil {
+		t.Option("missingkey=error")
+		return t, nil
+	}
+
+	if t := template.Lookup(templateFileName); t != nil && !structuredFormatName {
+		t.Option("missingkey=error")
+		return t, nil
+	}
+
+	return nil, fmt.Errorf("could not find format %q", name)
+}
+
+func LoadAllTemplates(fs fs.FS) []*template.Template {
+	return template.Must(template.ParseFS(fs, "*.tmpl")).Templates()
 }

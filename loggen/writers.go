@@ -19,16 +19,16 @@ import (
 	"net"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/kube-logging/log-generator/formats"
+	"github.com/kube-logging/log-generator/log"
 	"github.com/kube-logging/log-generator/metrics"
 )
 
 type LogWriter interface {
-	Send(formats.Log)
+	Send(log.Log)
 	Close()
 }
 
@@ -38,7 +38,7 @@ func newStdoutWriter() LogWriter {
 	return &StdoutLogWriter{}
 }
 
-func (*StdoutLogWriter) Send(l formats.Log) {
+func (*StdoutLogWriter) Send(l log.Log) {
 	msg, size := l.String()
 	fmt.Println(msg)
 
@@ -64,7 +64,7 @@ func newNetworkWriter(network string, address string) LogWriter {
 	return nlw
 }
 
-func (nlw *NetworkLogWriter) Send(l formats.Log) {
+func (nlw *NetworkLogWriter) Send(l log.Log) {
 	msg, size := l.String()
 
 	msg += "\n"
@@ -74,7 +74,7 @@ func (nlw *NetworkLogWriter) Send(l formats.Log) {
 
 		n, err := nlw.conn.Write([]byte(data))
 		if err != nil {
-			log.Errorf("Error sending message (%q), reconnecting...", err.Error())
+			logger.Errorf("Error sending message (%q), reconnecting...", err.Error())
 			nlw.reconnect()
 			continue
 		}
@@ -103,11 +103,11 @@ func (nlw *NetworkLogWriter) reconnect() {
 	bo.MaxElapsedTime = 0
 
 	backoff.RetryNotify(func() error {
-		log.Infof("Connecting to %s %s...", nlw.network, nlw.address)
+		logger.Infof("Connecting to %s %s...", nlw.network, nlw.address)
 		var err error
 		nlw.conn, err = net.DialTimeout(nlw.network, nlw.address, 5*time.Second)
 		return err
 	}, bo, func(err error, delay time.Duration) {
-		log.Errorf("Error connecting to server (%q), retrying in %s", err.Error(), delay.String())
+		logger.Errorf("Error connecting to server (%q), retrying in %s", err.Error(), delay.String())
 	})
 }

@@ -2,8 +2,12 @@
 BIN := ${PWD}/bin
 export PATH := ${BIN}:${PATH}
 
+CUSTOM_FORMATS := formats/custom
+
 LICENSEI := ${BIN}/licensei
 LICENSEI_VERSION = v0.8.0
+
+GOFLAGS =
 
 ${BIN}:
 	mkdir -p ${BIN}
@@ -14,11 +18,31 @@ license-check: ${LICENSEI} ## Run license check
 	${LICENSEI} header
 
 .PHONY: license-cache
-license-cache: ${LICENSEI} ## Generate license cache
+license-cache: ${LICENSEI} go.work ## Generate license cache
 	${LICENSEI} cache
 
 .PHONY: check
 check: license-cache license-check
+
+go.work:
+	go work init . ${CUSTOM_FORMATS}
+
+.PHONY: reinit
+reinit:
+	rm -f go.work
+	@$(MAKE) go.work
+
+.PHONY: build
+build: go.work
+	CGO_ENABLED=0 go build ${GOFLAGS} -a -o ${BIN}/loggen main.go
+
+.PHONY: test
+test: go.work
+	go test ${GOFLAGS} ./...
+
+.PHONY: docker-run
+docker-run:
+	docker build . -t log-generator:local && docker run -p 11000:11000 log-generator:local
 
 ${LICENSEI}: ${LICENSEI}_${LICENSEI_VERSION} | ${BIN}
 	ln -sf $(notdir $<) $@

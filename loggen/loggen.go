@@ -27,11 +27,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
-	log "github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/kube-logging/log-generator/formats"
 	"github.com/kube-logging/log-generator/formats/golang"
+	"github.com/kube-logging/log-generator/log"
 )
 
 type List struct {
@@ -86,11 +87,7 @@ func (l *List) MarshalJSON() ([]byte, error) {
 }
 
 func (l *LogGen) FormatsGetHandler(ctx *gin.Context) {
-	response := map[string][]string{}
-	response["syslog"] = formats.SyslogFormatNames()
-	response["web"] = formats.WebFormatNames()
-
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, formats.FormatsByType())
 }
 
 func (l *LogGen) GetHandler(ctx *gin.Context) {
@@ -103,7 +100,7 @@ func (l *LogGen) GetHandler(ctx *gin.Context) {
 func (l *LogGen) PostHandler(ctx *gin.Context) {
 	var lr LogGenRequest
 	if err := ctx.ShouldBindJSON(&lr); err != nil {
-		log.Error(err.Error())
+		logger.Error(err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -122,42 +119,27 @@ func (l *LogGen) PostHandler(ctx *gin.Context) {
 }
 
 func (lr *LogGenRequest) Validate() error {
-	if _, exists := formats.Types[lr.Type]; !exists {
+	if _, exists := formats.FormatsByType()[lr.Type]; !exists {
 		return fmt.Errorf("type %q does not exist", lr.Type)
 	}
 
 	return nil
 }
 
-func (lr *LogGenRequest) process(l *LogGen) formats.Log {
+func (lr *LogGenRequest) process(lg *LogGen) log.Log {
 	if lr.Count <= 0 {
 		return nil
 	}
 
-	// TODO: factory
-	var msg formats.Log
-	var err error
-	switch lr.Type {
-	case "syslog":
-		if l.Randomise {
-			msg, err = formats.NewRandomSyslog(lr.Format)
-		} else {
-			msg, err = formats.NewSyslog(lr.Format)
-		}
-	case "web":
-		if l.Randomise {
-			msg, err = formats.NewRandomWeb(lr.Format)
-		} else {
-			msg, err = formats.NewWeb(lr.Format)
-		}
-	case "golang":
-		msg = formats.NewGolangRandom(l.GolangLog)
-	default:
-		log.Panic("invalid LogGenRequest type")
+	// TODO configuration management for custom formats?
+	if lr.Type == "golang" {
+		return formats.NewGolangRandom(lg.GolangLog)
 	}
 
+	msg, err := formats.LogFactory(lr.Type, lr.Format, lg.Randomise)
+
 	if err != nil {
-		log.Warnf("Error generating log from request %v, %v", lr, err)
+		logger.Warnf("Error generating log from request %v, %v", lr, err)
 		return nil
 	}
 
@@ -185,7 +167,7 @@ func (l *LogGen) GolangGetHandler(c *gin.Context) {
 
 func (l *LogGen) GolangPatchHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&l.GolangLog); err != nil {
-		log.Error(err.Error())
+		logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -217,7 +199,7 @@ func (l *LogGen) golangSet() error {
 
 func (l *LogGen) processRequests() bool {
 	l.m.Lock()
-	logs := make([]formats.Log, 0, l.ActiveRequests.Len())
+	logs := make([]log.Log, 0, l.ActiveRequests.Len())
 
 	e := l.ActiveRequests.Front()
 	for e != nil {
@@ -254,6 +236,8 @@ func (l *LogGen) Run() {
 
 	go func() {
 
+		// TODO implement main loop for custom formats?
+
 		var counter = 0
 		var ticker *jitterbug.Ticker
 
@@ -278,7 +262,7 @@ func (l *LogGen) Run() {
 
 		for range ticker.C {
 			if viper.GetBool("nginx.enabled") {
-				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
 						return formats.NewRandomWeb("nginx")
 					} else {
@@ -287,7 +271,7 @@ func (l *LogGen) Run() {
 				})
 			}
 			if viper.GetBool("apache.enabled") {
-				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
 						return formats.NewRandomWeb("apache")
 					} else {
@@ -296,7 +280,7 @@ func (l *LogGen) Run() {
 				})
 			}
 			if viper.GetBool("golang.enabled") {
-				l.sendIfCount(count, &counter, func() (formats.Log, error) {
+				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					return formats.NewGolangRandom(l.GolangLog), nil
 				})
 			}
@@ -313,18 +297,18 @@ func (l *LogGen) Run() {
 
 	select {
 	case <-interrupt:
-		log.Infoln("Recieved interrupt")
+		logger.Infoln("Recieved interrupt")
 		break
 	case <-done:
 		break
 	}
 }
 
-func (l *LogGen) sendIfCount(count int, counter *int, f func() (formats.Log, error)) {
+func (l *LogGen) sendIfCount(count int, counter *int, f func() (log.Log, error)) {
 	if count == -1 || *counter < count {
 		n, err := f()
 		if err != nil {
-			log.Panic(err)
+			logger.Panic(err)
 		}
 		l.writer.Send(n)
 		*counter++

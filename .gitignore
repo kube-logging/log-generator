@@ -95,3 +95,6 @@ conf/config.ini
 .licensei.cache
 
 .DS_Store
+
+formats/custom-impl
+go.work*
