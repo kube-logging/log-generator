@@ -1,0 +1,9 @@
+{
+  "repository": {
+    "name": "log-generator"
+  },
+  "inputs": {
+    "release": false,
+    "publish": false
+  }
+}
