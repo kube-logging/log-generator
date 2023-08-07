@@ -3,6 +3,7 @@ FROM --platform=$BUILDPLATFORM golang:1.20-alpine3.18@sha256:7839c9f01b5502d7cb5
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETPLATFORM
+ARG BUILDFLAGS
 
 RUN apk -U add make
 
@@ -20,7 +21,7 @@ RUN go mod download
 ADD . .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH make build
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH make $BUILDFLAGS build
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
