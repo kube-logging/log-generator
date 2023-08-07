@@ -22,3 +22,14 @@ jobs:
 
     - name: Test
       run: make GOFLAGS="-v" test
+
+  artifacts:
+    name: Artifacts
+    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@4.3.0
+    with:
+      publish: ${{ github.event_name == 'push' }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write

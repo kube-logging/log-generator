@@ -1,0 +1,12 @@
+apiVersion: v2
+type: application
+name: log-generator
+version: 0.0.0
+appVersion: latest
+kubeVersion: ">=1.22.0-0"
+description: A Helm chart for Log-generator
+keywords:
+  - logging
+home: https://kube-logging.github.io
+sources:
+  - https://github.com/kube-logging/log-generator
