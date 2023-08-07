@@ -3,19 +3,10 @@ _API managed testing tool for logging-operator_
 
 
 ##  Deploy log-generator with Helm
-Add the chart repository of the Log-generator using the following commands:
 
 ```sh
-helm repo add kube-logging https://kube-logging.github.io/helm-charts
-helm repo update
+helm install --wait --generate-name oci://ghcr.io/kube-logging/helm-charts/log-generator
 ```
-
-### Install the Log-generator.
-
-```sh
-helm install log-generator kube-logging/log-generator
-```
-
 
 ## Usage
 
