@@ -7,8 +7,7 @@ A Helm chart for Log-generator
 ## TL;DR;
 
 ```bash
-helm repo add kube-logging https://kube-logging.github.io/helm-charts
-helm install --generate-name --wait kube-logging/log-generator
+helm install --wait --generate-name oci://ghcr.io/kube-logging/helm-charts/log-generator
 ```
 
 ## Values
