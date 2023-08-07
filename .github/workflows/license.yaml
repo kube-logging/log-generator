@@ -1,7 +1,10 @@
 name: License check
 
+
 on:
   push:
+    branches:
+      - master
   pull_request:
 
 jobs:
