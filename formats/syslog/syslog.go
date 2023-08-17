@@ -73,14 +73,30 @@ func SampleData() TemplateData {
 }
 
 func RandomData() TemplateData {
+	limit := viper.GetInt("message.max-random-cap")
 	return TemplateData{
-		Facility: randomdata.Number(0, 24),
-		severity: randomdata.Number(0, 8),
+		Facility: randomdata.Number(0, cap(24, limit)),
+		severity: randomdata.Number(0, cap(8, limit)),
 		dateTime: time.Now().UTC(),
-		Host:     fmt.Sprintf("host-%d", randomdata.Number(viper.GetInt("message.max-random-hosts"))+1),
-		AppName:  fmt.Sprintf("app%d", randomdata.Number(viper.GetInt("message.max-random-apps"))+1),
-		PID:      randomdata.Number(1, 10000),
-		Seq:      randomdata.Number(1, 10000),
-		Msg:      fmt.Sprintf("An application event log entry %s %s", randomdata.Noun(), randomdata.Noun()),
+		Host:     fmt.Sprintf("host-%d", cap(randomdata.Number(min(1, viper.GetInt("message.max-random-hosts")+1)), limit)),
+		AppName:  fmt.Sprintf("app%d", cap(randomdata.Number(min(1, viper.GetInt("message.max-random-apps")+1)), limit)),
+		PID:      randomdata.Number(1, cap(10000, limit)+1),
+		Seq:      randomdata.Number(1, cap(10000, limit)+1),
+		// Unlimited randomness in message content
+		Msg: fmt.Sprintf("An application event log entry %s %s", randomdata.Noun(), randomdata.Noun()),
 	}
+}
+
+func cap(num, cap int) int {
+	if num < cap {
+		return num
+	}
+	return cap
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
