@@ -14,6 +14,13 @@
 # The amount of bytes to emit/s (default: 200)
 #byte-per-sec =
 
+# Number of different random host names to generate
+#max-random-hosts = 1000
+# Number of different app names to generate
+#max-random-apps = 100
+# Random seed for host/app list generation so that the same set of host/app names are used (if >0)
+#seed = 0
+
 [api]
 # Server listen address (default: "":11000")
 #addr =

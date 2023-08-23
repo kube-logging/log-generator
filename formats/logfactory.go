@@ -20,6 +20,7 @@ import (
 	"github.com/kube-logging/log-generator/formats/syslog"
 	"github.com/kube-logging/log-generator/formats/web"
 	"github.com/kube-logging/log-generator/log"
+	"github.com/spf13/viper"
 )
 
 func FormatsByType() map[string][]string {
@@ -51,12 +52,22 @@ func LogFactory(logType string, format string, randomise bool) (log.Log, error) 
 	}
 }
 
+var syslogRandomService *syslog.RandomService
+
+func syslogRandom() *syslog.RandomService {
+	if syslogRandomService == nil {
+		syslogRandomService = syslog.NewRandomService(
+			viper.GetInt("message.max-random-hosts"), viper.GetInt("message.max-random-apps"), viper.GetInt64("message.seed"))
+	}
+	return syslogRandomService
+}
+
 func NewSyslog(format string) (*log.LogTemplate, error) {
-	return log.NewLogTemplate(format, syslog.TemplateFS, syslog.SampleData())
+	return log.NewLogTemplate(format, syslog.TemplateFS, syslogRandom().SampleData())
 }
 
 func NewRandomSyslog(format string) (*log.LogTemplate, error) {
-	return log.NewLogTemplate(format, syslog.TemplateFS, syslog.RandomData())
+	return log.NewLogTemplate(format, syslog.TemplateFS, syslogRandom().RandomData())
 }
 
 func SyslogFormatNames() []string {
