@@ -63,7 +63,7 @@ func SampleData() TemplateData {
 	return TemplateData{
 		Facility: 20,
 		severity: 5,
-		dateTime: dateTime: time.Now().UTC(),
+		dateTime: time.Now(),
 		Host:     viper.GetString("message.host"),
 		AppName:  viper.GetString("message.appname"),
 		PID:      1143,
