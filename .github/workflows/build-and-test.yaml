@@ -30,7 +30,7 @@ jobs:
 
   artifacts:
     name: Artifacts
-    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@4.3.0
+    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@4.4.1
     with:
       publish: ${{ github.event_name == 'push' }}
     permissions:
