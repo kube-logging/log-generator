@@ -28,7 +28,7 @@ license-cache: ${LICENSEI} go.work ## Generate license cache
 check: license-cache license-check
 
 go.work:
-	go work init . ${CUSTOM_FORMATS}
+	go work init . log ${CUSTOM_FORMATS}
 
 .PHONY: reinit
 reinit:
