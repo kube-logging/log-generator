@@ -46,3 +46,4 @@ helm install --wait --generate-name oci://ghcr.io/kube-logging/helm-charts/log-g
 | nodeSelector | object | `{}` |  |
 | tolerations | list | `[]` |  |
 | affinity | object | `{}` |  |
+| topologySpreadConstraints | list | `[]` |  |
