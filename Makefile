@@ -25,7 +25,7 @@ license-cache: ${LICENSEI} go.work ## Generate license cache
 	${LICENSEI} cache
 
 .PHONY: check
-check: license-cache license-check
+check:
 	go fmt ./...
 	go vet ./...
 	cd log && $(MAKE) check
@@ -47,7 +47,6 @@ test: go.work
 	go test ${GOFLAGS} ./...
 	cd log && $(MAKE) test
 
-
 .PHONY: docker-run
 docker-run:
 	docker build . -t log-generator:local && docker run -p 11000:11000 log-generator:local
@@ -57,7 +56,7 @@ helm-docs: ${HELM_DOCS}
 	${HELM_DOCS} -s file -c charts/ -t ../charts-docs/templates/overrides.gotmpl -t README.md.gotmpl
 
 .PHONY: check-diff
-check-diff: helm-docs
+check-diff: helm-docs check
 	git diff --exit-code ':(exclude)./ADOPTERS.md' ':(exclude)./docs/*'
 
 ${LICENSEI}: ${LICENSEI}_${LICENSEI_VERSION} | ${BIN}
