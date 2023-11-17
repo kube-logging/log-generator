@@ -33,18 +33,7 @@ Response:
   "event_per_sec": 100,
   "byte_per_sec": 200,
   "randomise": true,
-  "active_requests": [
-    {
-      "type": "syslog",
-      "format": "cisco.ios",
-      "count": 980
-    },
-    {
-      "type": "syslog",
-      "format": "cisco.ise",
-      "count": 2
-    }
-  ],
+  "active_requests": [],
   "golang_log": {
     "error_weight": 0,
     "warning_weight": 0,
@@ -64,24 +53,6 @@ curl --location --request GET 'localhost:11000/loggen/formats'
 Response:
 ```sh
 {
-  "syslog": [
-    "palo-alto.traffic",
-    "syslog.rfc3164",
-    "vmware.esxlog.vpxa",
-    "pfsense",
-    "syslog",
-    "ubiquiti",
-    "cisco.ise",
-    "kube.cri",
-    "kube",
-    "palo-alto",
-    "pfsense.filterlog",
-    "syslog.rfc5424",
-    "vmware",
-    "cisco.ios",
-    "cisco",
-    "kube.json"
-  ],
   "web": [
     "apache",
     "nginx"
@@ -96,8 +67,8 @@ Call:
 curl --location --request POST 'localhost:11000/loggen' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "type": "syslog",
-    "format": "cisco.ios",
+    "type": "web",
+    "format": "nginx.access",
     "count": 1000
 }'
 ```
@@ -105,9 +76,9 @@ curl --location --request POST 'localhost:11000/loggen' \
 Response:
 ```sh
 {
-    "type": "syslog",
-    "format": "cisco.ios",
-    "count": 1000
+  "type": "web",
+  "format": "nginx.access",
+  "count": 1000
 }
 ```
 

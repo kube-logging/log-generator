@@ -26,6 +26,9 @@ license-cache: ${LICENSEI} go.work ## Generate license cache
 
 .PHONY: check
 check: license-cache license-check
+	go fmt ./...
+	go vet ./...
+	cd log && $(MAKE) check
 
 go.work:
 	go work init . log ${CUSTOM_FORMATS}
@@ -42,6 +45,8 @@ build: go.work
 .PHONY: test
 test: go.work
 	go test ${GOFLAGS} ./...
+	cd log && $(MAKE) test
+
 
 .PHONY: docker-run
 docker-run:

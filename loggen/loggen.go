@@ -32,6 +32,7 @@ import (
 
 	"github.com/kube-logging/log-generator/formats"
 	"github.com/kube-logging/log-generator/formats/golang"
+	"github.com/kube-logging/log-generator/formats/web"
 	"github.com/kube-logging/log-generator/log"
 )
 
@@ -148,7 +149,7 @@ func (lr *LogGenRequest) process(lg *LogGen) log.Log {
 }
 
 func tickerForByte(bandwith int, j jitterbug.Jitter) *jitterbug.Ticker {
-	l, _ := formats.NewWeb("nginx")
+	l, _ := formats.NewWeb("nginx", web.TemplateFS)
 	_, length := l.String()
 	events := float64(1) / (float64(length) / float64(bandwith))
 	duration := float64(1000) / float64(events)
@@ -264,18 +265,18 @@ func (l *LogGen) Run() {
 			if viper.GetBool("nginx.enabled") {
 				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
-						return formats.NewRandomWeb("nginx")
+						return formats.NewRandomWeb("nginx", web.TemplateFS)
 					} else {
-						return formats.NewWeb("nginx")
+						return formats.NewWeb("nginx", web.TemplateFS)
 					}
 				})
 			}
 			if viper.GetBool("apache.enabled") {
 				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
-						return formats.NewRandomWeb("apache")
+						return formats.NewRandomWeb("apache", web.TemplateFS)
 					} else {
-						return formats.NewWeb("apache")
+						return formats.NewWeb("apache", web.TemplateFS)
 					}
 				})
 			}

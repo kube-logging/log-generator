@@ -15,37 +15,27 @@
 package formats
 
 import (
+	"embed"
 	"strings"
 	"testing"
-	"text/template"
 
-	"github.com/kube-logging/log-generator/formats/syslog"
 	"github.com/kube-logging/log-generator/formats/web"
 	"github.com/kube-logging/log-generator/log"
 )
 
-type LogConstructor func(string) (*log.LogTemplate, error)
-
-func TestSyslogFormats(t *testing.T) {
-	// Separate Template tree per directory because Go Template can not handle
-	// multiple files with the same name in different directories.
-
-	syslogTemplates := log.LoadAllTemplates(syslog.TemplateFS)
-	assertFormatAll(t, syslogTemplates, NewSyslog)
-}
+type LogConstructor func(string, embed.FS) (*log.LogTemplate, error)
 
 func TestWebFormats(t *testing.T) {
 	// Separate Template tree per directory because Go Template can not handle
 	// multiple files with the same name in different directories.
-
-	webTemplates := log.LoadAllTemplates(web.TemplateFS)
-	assertFormatAll(t, webTemplates, NewWeb)
+	assertFormatAll(t, web.TemplateFS, NewWeb)
 }
 
-func assertFormatAll(t *testing.T, templates []*template.Template, c LogConstructor) {
+func assertFormatAll(t *testing.T, embeddedTemplates embed.FS, c LogConstructor) {
+	templates := log.LoadAllTemplates(embeddedTemplates)
 	for _, f := range templates {
 		format := strings.TrimSuffix(f.Name(), ".tmpl")
-		log, err := c(format)
+		log, err := c(format, embeddedTemplates)
 		if err != nil {
 			t.Fatalf("Failed to create log, format=%q, %v", format, err)
 		}
