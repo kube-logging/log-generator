@@ -17,11 +17,12 @@ package syslog
 import (
 	"embed"
 	"fmt"
+	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/spf13/viper"
 )
 
 //go:embed *.tmpl
@@ -59,7 +60,47 @@ func (t TemplateData) Severity() string {
 	return strconv.FormatInt(int64(t.severity), 10)
 }
 
-func SampleData() TemplateData {
+type RandomService struct {
+	Hosts []string
+	Apps  []string
+}
+
+func NewRandomService(maxHosts int, maxApps int, seed int64) *RandomService {
+	svc := new(RandomService)
+
+	// we might experience a race condition here, but we are dealing with pseudorandom data anyway
+	if seed != 0 {
+		randomdata.CustomRand(rand.New(rand.NewSource(seed)))
+		defer randomdata.CustomRand(rand.New(rand.NewSource(time.Now().UnixNano())))
+	}
+
+	svc.Hosts = make([]string, maxHosts)
+	for i := 0; i < maxHosts; i++ {
+		svc.Hosts[i] = strings.ToLower(randomdata.SillyName())
+	}
+
+	svc.Apps = make([]string, maxApps)
+	for i := 0; i < maxApps; i++ {
+		svc.Apps[i] = strings.ToLower(randomdata.SillyName())
+	}
+	return svc
+}
+
+func (r *RandomService) RandomHost() string {
+	if len(r.Hosts) == 0 {
+		return "host"
+	}
+	return r.Hosts[randomdata.Number(0, len(r.Hosts))]
+}
+
+func (r *RandomService) RandomApp() string {
+	if len(r.Apps) == 0 {
+		return "app"
+	}
+	return r.Apps[randomdata.Number(0, len(r.Apps))]
+}
+
+func (r *RandomService) SampleData() TemplateData {
 	return TemplateData{
 		Facility: 20,
 		severity: 5,
@@ -72,13 +113,13 @@ func SampleData() TemplateData {
 	}
 }
 
-func RandomData() TemplateData {
+func (r *RandomService) RandomData() TemplateData {
 	return TemplateData{
 		Facility: randomdata.Number(0, 24),
 		severity: randomdata.Number(0, 8),
 		dateTime: time.Now().UTC(),
-		Host:     fmt.Sprintf("host-%d", randomdata.Number(viper.GetInt("message.max-random-hosts"))+1),
-		AppName:  fmt.Sprintf("app%d", randomdata.Number(viper.GetInt("message.max-random-apps"))+1),
+		Host:     r.RandomHost(),
+		AppName:  r.RandomApp(),
 		PID:      randomdata.Number(1, 10000),
 		Seq:      randomdata.Number(1, 10000),
 		Msg:      fmt.Sprintf("An application event log entry %s %s", randomdata.Noun(), randomdata.Noun()),
