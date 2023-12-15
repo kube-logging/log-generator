@@ -5,13 +5,25 @@ updates:
     directory: /
     schedule:
       interval: daily
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: daily
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: daily
+    groups:
+      all:
+        patterns:
+        - "*"
