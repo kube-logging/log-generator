@@ -25,7 +25,7 @@ jobs:
     - name: Test
       run: make GOFLAGS="-v" test
 
-    - name: Check diff
+    - name: Check
       run: make check-diff
 
   artifacts:

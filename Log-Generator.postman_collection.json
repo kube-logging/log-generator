@@ -62,8 +62,8 @@
 											"",
 											"pm.test(\"Content test\", () => {",
 											"  const responseJson = pm.response.json();",
-											"  pm.expect(responseJson.type).to.eql(\"syslog\");",
-											"  pm.expect(responseJson.format).to.eql(\"cisco.ios\");",
+											"  pm.expect(responseJson.type).to.eql(\"web\");",
+											"  pm.expect(responseJson.format).to.eql(\"nginx\");",
 											"  pm.expect(responseJson.count).to.eql(5);",
 											"});"
 										],
@@ -76,7 +76,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{ \"type\": \"syslog\", \"format\": \"cisco.ios\", \"count\": 5 }",
+									"raw": "{ \"type\": \"web\", \"format\": \"nginx\", \"count\": 5 }",
 									"options": {
 										"raw": {
 											"language": "json"

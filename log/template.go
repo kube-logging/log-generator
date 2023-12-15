@@ -78,7 +78,7 @@ func (l *LogTemplate) Labels() prometheus.Labels {
 }
 
 func loadTemplate(name string, fs fs.FS) (*template.Template, error) {
-	// syslog.rfc5424.sdata => syslog.tmpl
+	// web.a.b.c => web.tmpl
 	templateFileName, _, structuredFormatName := strings.Cut(name, ".")
 	templateFileName += ".tmpl"
 

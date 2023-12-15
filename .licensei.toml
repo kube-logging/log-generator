@@ -15,7 +15,7 @@ ignored = [
 ]
 
 [header]
-ignorePaths = ["vendor", ".gen", "plz-out"]
+ignorePaths = ["vendor", ".gen", "plz-out", "formats/custom-impl"]
 ignoreFiles = ["mock_*.go", "*_gen.go", "zz_generated.*.go", "generated.go"]
 authors = ["Banzai Cloud", "Cisco Systems, Inc. and/or its affiliates", "Kube logging authors"]
 template = """// Copyright © :YEAR: :AUTHOR:

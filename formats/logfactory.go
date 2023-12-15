@@ -15,12 +15,12 @@
 package formats
 
 import (
+	"embed"
+
 	"github.com/kube-logging/log-generator/formats/custom"
 	"github.com/kube-logging/log-generator/formats/golang"
-	"github.com/kube-logging/log-generator/formats/syslog"
 	"github.com/kube-logging/log-generator/formats/web"
 	"github.com/kube-logging/log-generator/log"
-	"github.com/spf13/viper"
 )
 
 func FormatsByType() map[string][]string {
@@ -28,58 +28,29 @@ func FormatsByType() map[string][]string {
 	for t, f := range custom.Formats() {
 		response[t] = f
 	}
-	response["syslog"] = SyslogFormatNames()
 	response["web"] = WebFormatNames()
 	return response
 }
 
 func LogFactory(logType string, format string, randomise bool) (log.Log, error) {
 	switch logType {
-	case "syslog":
-		if randomise {
-			return NewRandomSyslog(format)
-		} else {
-			return NewSyslog(format)
-		}
 	case "web":
 		if randomise {
-			return NewRandomWeb(format)
+			return NewRandomWeb(format, web.TemplateFS)
 		} else {
-			return NewWeb(format)
+			return NewWeb(format, web.TemplateFS)
 		}
 	default:
 		return custom.LogFactory(logType, format, randomise)
 	}
 }
 
-var syslogRandomService *syslog.RandomService
-
-func syslogRandom() *syslog.RandomService {
-	if syslogRandomService == nil {
-		syslogRandomService = syslog.NewRandomService(
-			viper.GetInt("message.max-random-hosts"), viper.GetInt("message.max-random-apps"), viper.GetInt64("message.seed"))
-	}
-	return syslogRandomService
+func NewWeb(format string, templates embed.FS) (*log.LogTemplate, error) {
+	return log.NewLogTemplate(format, templates, web.SampleData())
 }
 
-func NewSyslog(format string) (*log.LogTemplate, error) {
-	return log.NewLogTemplate(format, syslog.TemplateFS, syslogRandom().SampleData())
-}
-
-func NewRandomSyslog(format string) (*log.LogTemplate, error) {
-	return log.NewLogTemplate(format, syslog.TemplateFS, syslogRandom().RandomData())
-}
-
-func SyslogFormatNames() []string {
-	return log.FormatNames(syslog.TemplateFS)
-}
-
-func NewWeb(format string) (*log.LogTemplate, error) {
-	return log.NewLogTemplate(format, web.TemplateFS, web.SampleData())
-}
-
-func NewRandomWeb(format string) (*log.LogTemplate, error) {
-	return log.NewLogTemplate(format, web.TemplateFS, web.RandomData())
+func NewRandomWeb(format string, templates embed.FS) (*log.LogTemplate, error) {
+	return log.NewLogTemplate(format, templates, web.RandomData())
 }
 
 func WebFormatNames() []string {
