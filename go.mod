@@ -11,7 +11,7 @@ require (
 	github.com/kube-logging/log-generator/log v0.0.0-20231009062440-449821d2ebc4
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/mroth/weightedrand v1.0.0
-	github.com/prometheus/client_golang v1.20.4
+	github.com/prometheus/client_golang v1.20.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 )
