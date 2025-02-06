@@ -1,8 +1,8 @@
 # Log-Generator
-_API managed testing tool for logging-operator_
 
+API managed testing tool for logging-operator
 
-##  Deploy log-generator with Helm
+## Deploy log-generator with Helm
 
 ```sh
 helm install --wait --generate-name oci://ghcr.io/kube-logging/helm-charts/log-generator
@@ -11,24 +11,28 @@ helm install --wait --generate-name oci://ghcr.io/kube-logging/helm-charts/log-g
 ## Usage
 
 You can start the daemon serving the API on e.g. port 11000 by running the following command:
+
 ```sh
-$ go run main.go
+go run main.go
 ```
 
-Now you can connect to http://localhost:11000 from your browser or using your favorite HTTP client.
+Now you can connect to <http://localhost:11000> from your browser or using your favorite HTTP client.
 
 ## Available API Calls
 
 ### Log generator
+
 #### [GET] /loggen
 
 Call:
+
 ```sh
 curl --location --request GET 'localhost:11000/loggen'
 ```
 
 Response:
-```sh
+
+```json
 {
   "event_per_sec": 100,
   "byte_per_sec": 200,
@@ -46,12 +50,14 @@ Response:
 #### [GET] /loggen/formats
 
 Call:
+
 ```sh
 curl --location --request GET 'localhost:11000/loggen/formats'
 ```
 
 Response:
-```sh
+
+```json
 {
   "web": [
     "apache",
@@ -63,6 +69,7 @@ Response:
 #### [POST] /loggen
 
 Call:
+
 ```sh
 curl --location --request POST 'localhost:11000/loggen' \
 --header 'Content-Type: application/json' \
@@ -74,7 +81,8 @@ curl --location --request POST 'localhost:11000/loggen' \
 ```
 
 Response:
-```sh
+
+```json
 {
   "type": "web",
   "format": "nginx.access",
@@ -83,15 +91,18 @@ Response:
 ```
 
 ### Manage Memory Load Function
+
 #### [GET] /memory
 
 Call:
+
 ```sh
 curl --location --request GET 'localhost:11000/memory'
 ```
 
 Response:
-```sh
+
+```json
 {
     "megabyte": 0,
     "active": "0001-01-01T00:00:00Z",
@@ -103,6 +114,7 @@ Response:
 #### [PATCH] /memory
 
 Call:
+
 ```sh
 curl --location --request PATCH 'localhost:11000/memory' \
 --header 'Content-Type: application/json' \
@@ -113,7 +125,8 @@ curl --location --request PATCH 'localhost:11000/memory' \
 ```
 
 Response:
-```sh
+
+```json
 {
     "megabyte": 100,
     "active": "2021-09-09T17:41:47.813508+02:00",
@@ -122,17 +135,19 @@ Response:
 }
 ```
 
-
 ### Manage CPU Load Function
 
 #### [GET] /cpu
 
 Call:
+
 ```sh
 curl --location --request GET 'localhost:11000/cpu'
 ```
+
 Response:
-```sh
+
+```json
 {
     "load": 0,
     "duration": 0,
@@ -144,7 +159,9 @@ Response:
 ```
 
 #### [PATCH] /cpu
+
 Call:
+
 ```sh
 curl --location --request PATCH 'localhost:11000/cpu' \
 --header 'Content-Type: application/json' \
@@ -154,8 +171,10 @@ curl --location --request PATCH 'localhost:11000/cpu' \
     "core": 2
 }'
 ```
+
 Response:
-```sh
+
+```json
 {
     "load": 5.7,
     "duration": 10,
@@ -166,13 +185,18 @@ Response:
 ```
 
 ### Manage Log Level Configuration
+
 #### [GET] /log_level
+
 Call:
+
 ```sh
 curl --location --request GET 'localhost:11000/log_level'
 ```
+
 Response:
-```sh
+
+```json
 {
     "level": "debug",
     "last_modified": "0001-01-01T00:00:00Z"
@@ -181,7 +205,9 @@ Response:
 ```
 
 #### [PATCH] /log_level
+
 Call:
+
 ```sh
 curl --location --request PATCH 'localhost:11000/log_level' \
 --header 'Content-Type: application/json' \
@@ -191,23 +217,27 @@ curl --location --request PATCH 'localhost:11000/log_level' \
 ```
 
 Response:
-```sh
+
+```json
 {
     "level": "info",
     "last_modified": "2021-09-10T14:51:56.639658+02:00"
 }
 ```
 
-
 ### Status
 
 #### [GET] /
+
 Call:
+
 ```sh
 curl --location --request GET 'localhost:11000/'
 ```
+
 Response:
-```sh
+
+```json
 {
     "memory": {
         "megabyte": 0,
@@ -230,7 +260,9 @@ Response:
 ```
 
 #### [PATCH] /
+
 Call:
+
 ```sh
 curl --location --request PATCH 'localhost:11000/' \
 --header 'Content-Type: application/json' \
@@ -251,7 +283,8 @@ curl --location --request PATCH 'localhost:11000/' \
 ```
 
 Response:
-```sh
+
+```json
 {
     "memory": {
         "megabyte": 70,
@@ -274,9 +307,12 @@ Response:
 ```
 
 ## Testing with newman
-Install newman(https://github.com/postmanlabs/newman) with homebrew
 
-`$ brew install newman`
+Install [newman](https://github.com/postmanlabs/newman) with homebrew
+
+```sh
+brew install newman
+```
 
 Run the collection test
 
@@ -285,6 +321,7 @@ newman run Log-Generator.postman_collection.json --env-var "baseUrl=localhost:11
 ```
 
 Expected Output:
+
 ```sh
 Log-Generator
 

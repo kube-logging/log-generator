@@ -5,10 +5,10 @@ export PATH := ${BIN}:${PATH}
 CUSTOM_FORMATS := formats/custom
 
 LICENSEI := ${BIN}/licensei
-LICENSEI_VERSION := v0.8.0
+LICENSEI_VERSION := v0.9.0
 
 HELM_DOCS := ${BIN}/helm-docs
-HELM_DOCS_VERSION = 1.11.0
+HELM_DOCS_VERSION = 1.14.2
 
 GOFLAGS =
 
@@ -58,6 +58,10 @@ helm-docs: ${HELM_DOCS}
 .PHONY: check-diff
 check-diff: helm-docs check
 	git diff --exit-code ':(exclude)./ADOPTERS.md' ':(exclude)./docs/*'
+
+.PHONY: tidy
+tidy: ## Tidy Go modules
+	find . -iname "go.mod" -not -path "./.devcontainer/*" | xargs -L1 sh -c 'cd $$(dirname $$0); go mod tidy'
 
 ${LICENSEI}: ${LICENSEI}_${LICENSEI_VERSION} | ${BIN}
 	ln -sf $(notdir $<) $@
