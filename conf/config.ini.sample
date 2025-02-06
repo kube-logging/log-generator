@@ -29,3 +29,7 @@
 
 #[nginx]
 #enabled = true
+
+#[destination]
+#network = "tcp"
+#address = "127.0.0.1:514"
