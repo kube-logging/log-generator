@@ -52,9 +52,10 @@ type LogGen struct {
 }
 
 type LogGenRequest struct {
-	Type   string `json:"type"`
-	Format string `json:"format"`
-	Count  int    `json:"count"`
+	Type    string `json:"type"`
+	Format  string `json:"format"`
+	Count   int    `json:"count"`
+	Framing bool   `json:"framing"`
 }
 
 func New() *LogGen {
@@ -212,6 +213,10 @@ func (l *LogGen) processRequests() bool {
 			e = e.Next()
 			l.ActiveRequests.Remove(tmp)
 			continue
+		}
+
+		if request.Framing {
+			msg.SetFramed(true)
 		}
 
 		logs = append(logs, msg)

@@ -21,4 +21,6 @@ import (
 type Log interface {
 	String() (string, float64)
 	Labels() prometheus.Labels
+	IsFramed() bool
+	SetFramed(bool)
 }
