@@ -42,6 +42,8 @@ type GolangLog struct {
 	Level       string `json:"level"`
 	MSG         string `json:"msg"`
 	Time        string `json:"time"`
+
+	isFramed bool
 }
 
 func (g GolangLog) newRandomMessage() string {
@@ -65,7 +67,7 @@ func (g GolangLog) newRandomMessage() string {
 	return msgList[g.Level]
 }
 
-func NewGolangLogRandom(i GolangLogIntensity) GolangLog {
+func NewGolangLogRandom(i GolangLogIntensity) *GolangLog {
 	rand.Seed(time.Now().UTC().UnixNano())
 	c, err := wr.NewChooser(
 		wr.Choice{Item: "error", Weight: *i.ErrorWeight},
@@ -76,7 +78,7 @@ func NewGolangLogRandom(i GolangLogIntensity) GolangLog {
 	if err != nil {
 		log.Error(err)
 	}
-	return GolangLog{
+	return &GolangLog{
 		Application: randomdata.StringSample("webshop", "blog"),
 		Environment: randomdata.StringSample("production", "sandbox", "demo"),
 		Component:   randomdata.StringSample("frontend", "backend", "worker"),
@@ -102,6 +104,14 @@ func (g GolangLog) String() (string, float64) {
 	message := fmt.Sprint(buffer.String())
 
 	return message, float64(len([]byte(message)))
+}
+
+func (l *GolangLog) IsFramed() bool {
+	return l.isFramed
+}
+
+func (l *GolangLog) SetFramed(f bool) {
+	l.isFramed = f
 }
 
 func (g GolangLog) Labels() prometheus.Labels {
