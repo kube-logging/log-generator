@@ -75,8 +75,9 @@ curl --location --request POST 'localhost:11000/loggen' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "type": "web",
-    "format": "nginx.access",
-    "count": 1000
+    "format": "nginx",
+    "count": 1000,
+    "framing": false
 }'
 ```
 
@@ -85,8 +86,9 @@ Response:
 ```json
 {
   "type": "web",
-  "format": "nginx.access",
-  "count": 1000
+  "format": "nginx",
+  "count": 1000,
+  "framing": false
 }
 ```
 

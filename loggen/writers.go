@@ -40,6 +40,11 @@ func newStdoutWriter() LogWriter {
 
 func (*StdoutLogWriter) Send(l log.Log) {
 	msg, size := l.String()
+
+	if l.IsFramed() {
+		msg = fmt.Sprintf("%d %s", len(msg), msg)
+	}
+
 	fmt.Println(msg)
 
 	metrics.EventEmitted.With(l.Labels()).Inc()
@@ -67,7 +72,12 @@ func newNetworkWriter(network string, address string) LogWriter {
 func (nlw *NetworkLogWriter) Send(l log.Log) {
 	msg, size := l.String()
 
-	msg += "\n"
+	if l.IsFramed() {
+		msg = fmt.Sprintf("%d %s", len(msg), msg)
+	} else {
+		msg += "\n"
+	}
+
 	written := 0
 	for {
 		data := msg[written:]

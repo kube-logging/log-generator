@@ -34,6 +34,7 @@ type LogTemplate struct {
 
 	template *template.Template
 	data     LogTemplateData
+	isFramed bool
 }
 
 func NewLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate, error) {
@@ -68,6 +69,14 @@ func (l *LogTemplate) String() (string, float64) {
 	str := strings.TrimSuffix(b.String(), "\n")
 
 	return str, float64(len([]byte(str)))
+}
+
+func (l *LogTemplate) IsFramed() bool {
+	return l.isFramed
+}
+
+func (l *LogTemplate) SetFramed(f bool) {
+	l.isFramed = f
 }
 
 func (l *LogTemplate) Labels() prometheus.Labels {
