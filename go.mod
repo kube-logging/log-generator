@@ -7,6 +7,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dhoomakethu/stress v0.0.0-20230620054616-291ff04e1c89
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-viper/encoding/ini v0.1.1
 	github.com/kube-logging/log-generator/formats/custom v0.0.0-20250206095042-0df4b7b9896b
 	github.com/kube-logging/log-generator/log v0.0.0-20250206095042-0df4b7b9896b
 	github.com/lthibault/jitterbug v2.0.0+incompatible
@@ -63,5 +64,6 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

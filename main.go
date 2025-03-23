@@ -24,7 +24,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/kube-logging/log-generator/conf"
 	"github.com/kube-logging/log-generator/loggen"
@@ -120,8 +119,8 @@ func exceptionsGoCall(c *gin.Context) {
 func main() {
 	metrics.Startup = time.Now()
 
-	apiAddr := viper.GetString("api.addr")
-	apiBasePath := viper.GetString("api.basePath")
+	apiAddr := conf.Viper.GetString("api.addr")
+	apiBasePath := conf.Viper.GetString("api.basePath")
 
 	flag.Parse()
 
