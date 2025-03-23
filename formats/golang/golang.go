@@ -25,7 +25,8 @@ import (
 	wr "github.com/mroth/weightedrand"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+
+	"github.com/kube-logging/log-generator/conf"
 )
 
 type GolangLogIntensity struct {
@@ -88,7 +89,7 @@ func NewGolangLogRandom(i GolangLogIntensity) *GolangLog {
 }
 
 func (g GolangLog) String() (string, float64) {
-	g.Time = time.Now().Format(viper.GetString("golang.time_format"))
+	g.Time = time.Now().Format(conf.Viper.GetString("golang.time_format"))
 	g.MSG = g.newRandomMessage()
 
 	out, err := json.MarshalIndent(g, "", "  ")

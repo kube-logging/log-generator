@@ -17,46 +17,54 @@ package conf
 import (
 	"fmt"
 
+	"github.com/go-viper/encoding/ini"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
+var Viper *viper.Viper
+
 func Init() {
+	codecRegistry := viper.NewCodecRegistry()
+	codecRegistry.RegisterCodec("ini", &ini.Codec{})
+	Viper = viper.NewWithOptions(
+		viper.WithCodecRegistry(codecRegistry),
+	)
+	Viper.SetConfigName("config")
+	Viper.SetConfigType("ini")
+	Viper.AddConfigPath("./conf/")
 
-	viper.AddConfigPath("./conf/")
-	viper.SetConfigName("config")
-
-	if err := viper.ReadInConfig(); err != nil {
+	if err := Viper.ReadInConfig(); err != nil {
 		log.Warnf("Error reading config file, %s", err)
 	}
 
-	viper.SetDefault("logging.level", "info")
+	Viper.SetDefault("logging.level", "info")
 
-	level, lErr := log.ParseLevel(viper.GetString("logging.level"))
+	level, lErr := log.ParseLevel(Viper.GetString("logging.level"))
 	if lErr != nil {
 		panic("unrecognized loglevel")
 	}
 	log.SetLevel(level)
 
-	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
-	viper.SetDefault("message.count", 0)
-	viper.SetDefault("message.randomise", true)
-	viper.SetDefault("message.event-per-sec", 2)
-	viper.SetDefault("message.byte-per-sec", 200)
-	viper.SetDefault("message.max-random-hosts", 1000)
-	viper.SetDefault("message.max-random-apps", 100)
-	viper.SetDefault("message.host", "hostname")
-	viper.SetDefault("message.appname", "appname")
+	fmt.Printf("Using config: %s\n", Viper.ConfigFileUsed())
+	Viper.SetDefault("message.count", 0)
+	Viper.SetDefault("message.randomise", true)
+	Viper.SetDefault("message.event-per-sec", 2)
+	Viper.SetDefault("message.byte-per-sec", 200)
+	Viper.SetDefault("message.max-random-hosts", 1000)
+	Viper.SetDefault("message.max-random-apps", 100)
+	Viper.SetDefault("message.host", "hostname")
+	Viper.SetDefault("message.appname", "appname")
 
-	viper.SetDefault("api.addr", ":11000")
-	viper.SetDefault("api.basePath", "/")
+	Viper.SetDefault("api.addr", ":11000")
+	Viper.SetDefault("api.basePath", "/")
 
-	viper.SetDefault("nginx.enabled", false)
-	viper.SetDefault("apache.enabled", false)
-	viper.SetDefault("golang.enabled", false)
-	viper.SetDefault("golang.time_format", "02/Jan/2006:15:04:05 -0700")
-	viper.SetDefault("golang.weight.error", 0)
-	viper.SetDefault("golang.weight.info", 1)
-	viper.SetDefault("golang.weight.warning", 0)
-	viper.SetDefault("golang.weight.debug", 0)
+	Viper.SetDefault("nginx.enabled", false)
+	Viper.SetDefault("apache.enabled", false)
+	Viper.SetDefault("golang.enabled", false)
+	Viper.SetDefault("golang.time_format", "02/Jan/2006:15:04:05 -0700")
+	Viper.SetDefault("golang.weight.error", 0)
+	Viper.SetDefault("golang.weight.info", 1)
+	Viper.SetDefault("golang.weight.warning", 0)
+	Viper.SetDefault("golang.weight.debug", 0)
 }

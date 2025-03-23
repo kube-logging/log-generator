@@ -28,8 +28,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lthibault/jitterbug"
 	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
+	"github.com/kube-logging/log-generator/conf"
 	"github.com/kube-logging/log-generator/formats"
 	"github.com/kube-logging/log-generator/formats/golang"
 	"github.com/kube-logging/log-generator/formats/web"
@@ -60,9 +60,9 @@ type LogGenRequest struct {
 
 func New() *LogGen {
 	return &LogGen{
-		EventPerSec:    viper.GetInt("message.event-per-sec"),
-		BytePerSec:     viper.GetInt("message.byte-per-sec"),
-		Randomise:      viper.GetBool("message.randomise"),
+		EventPerSec:    conf.Viper.GetInt("message.event-per-sec"),
+		BytePerSec:     conf.Viper.GetInt("message.byte-per-sec"),
+		Randomise:      conf.Viper.GetBool("message.randomise"),
 		ActiveRequests: List{list.New()},
 	}
 }
@@ -184,16 +184,16 @@ func uintPtr(u uint) *uint {
 
 func (l *LogGen) golangSet() error {
 	if l.GolangLog.ErrorWeight == nil {
-		l.GolangLog.ErrorWeight = uintPtr(viper.GetUint("golang.weight.error"))
+		l.GolangLog.ErrorWeight = uintPtr(conf.Viper.GetUint("golang.weight.error"))
 	}
 	if l.GolangLog.WarningWeight == nil {
-		l.GolangLog.WarningWeight = uintPtr(viper.GetUint("golang.weight.warning"))
+		l.GolangLog.WarningWeight = uintPtr(conf.Viper.GetUint("golang.weight.warning"))
 	}
 	if l.GolangLog.InfoWeight == nil {
-		l.GolangLog.InfoWeight = uintPtr(viper.GetUint("golang.weight.info"))
+		l.GolangLog.InfoWeight = uintPtr(conf.Viper.GetUint("golang.weight.info"))
 	}
 	if l.GolangLog.DebugWeight == nil {
-		l.GolangLog.DebugWeight = uintPtr(viper.GetUint("golang.weight.debug"))
+		l.GolangLog.DebugWeight = uintPtr(conf.Viper.GetUint("golang.weight.debug"))
 	}
 
 	return nil
@@ -256,10 +256,10 @@ func (l *LogGen) Run() {
 		} else if l.BytePerSec > 0 {
 			ticker = tickerForByte(l.BytePerSec, jitter)
 		}
-		count := viper.GetInt("message.count")
+		count := conf.Viper.GetInt("message.count")
 
-		if len(viper.GetString("destination.network")) != 0 {
-			l.writer = newNetworkWriter(viper.GetString("destination.network"), viper.GetString("destination.address"))
+		if len(conf.Viper.GetString("destination.network")) != 0 {
+			l.writer = newNetworkWriter(conf.Viper.GetString("destination.network"), conf.Viper.GetString("destination.address"))
 		} else {
 			l.writer = newStdoutWriter()
 		}
@@ -267,7 +267,7 @@ func (l *LogGen) Run() {
 		l.golangSet()
 
 		for range ticker.C {
-			if viper.GetBool("nginx.enabled") {
+			if conf.Viper.GetBool("nginx.enabled") {
 				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
 						return formats.NewRandomWeb("nginx", web.TemplateFS)
@@ -276,7 +276,7 @@ func (l *LogGen) Run() {
 					}
 				})
 			}
-			if viper.GetBool("apache.enabled") {
+			if conf.Viper.GetBool("apache.enabled") {
 				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					if l.Randomise {
 						return formats.NewRandomWeb("apache", web.TemplateFS)
@@ -285,7 +285,7 @@ func (l *LogGen) Run() {
 					}
 				})
 			}
-			if viper.GetBool("golang.enabled") {
+			if conf.Viper.GetBool("golang.enabled") {
 				l.sendIfCount(count, &counter, func() (log.Log, error) {
 					return formats.NewGolangRandom(l.GolangLog), nil
 				})
