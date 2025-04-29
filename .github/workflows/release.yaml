@@ -10,7 +10,7 @@ permissions:
 jobs:
   artifacts:
     name: Artifacts
-    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@5.2.0
+    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@5.3.0
     with:
       version: ${{ github.ref_name }}
       publish: true
