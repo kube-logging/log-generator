@@ -6,7 +6,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dhoomakethu/stress v0.0.0-20230620054616-291ff04e1c89
-	github.com/gin-gonic/gin v1.10.0
+	github.com/gin-gonic/gin v1.10.1
 	github.com/go-viper/encoding/ini v0.1.1
 	github.com/kube-logging/log-generator/formats/custom v0.0.0-20250206095042-0df4b7b9896b
 	github.com/kube-logging/log-generator/log v0.0.0-20250206095042-0df4b7b9896b
