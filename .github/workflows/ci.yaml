@@ -63,7 +63,7 @@ jobs:
 
   artifacts:
     name: Artifacts
-    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@6.2.2
+    uses: kube-logging/logging-operator/.github/workflows/artifacts.yaml@6.3.0
     with:
       version: "latest"
       publish: ${{ github.event_name == 'push' }}
