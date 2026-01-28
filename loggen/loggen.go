@@ -34,6 +34,7 @@ import (
 	"github.com/kube-logging/log-generator/formats/golang"
 	"github.com/kube-logging/log-generator/formats/web"
 	"github.com/kube-logging/log-generator/log"
+	"github.com/kube-logging/log-generator/writers"
 )
 
 type List struct {
@@ -48,7 +49,7 @@ type LogGen struct {
 	GolangLog      golang.GolangLogIntensity `json:"golang_log"`
 
 	m      sync.Mutex `json:"-"`
-	writer LogWriter
+	writer writers.LogWriter
 }
 
 type LogGenRequest struct {
@@ -259,9 +260,18 @@ func (l *LogGen) Run() {
 		count := conf.Viper.GetInt("message.count")
 
 		if len(conf.Viper.GetString("destination.network")) != 0 {
-			l.writer = newNetworkWriter(conf.Viper.GetString("destination.network"), conf.Viper.GetString("destination.address"))
+			l.writer = writers.NewNetworkWriter(conf.Viper.GetString("destination.network"), conf.Viper.GetString("destination.address"))
+		} else if len(conf.Viper.GetString("destination.file.path")) != 0 {
+			l.writer = writers.NewFileWriter(writers.FileLogWriterConfig{
+				Path:           conf.Viper.GetString("destination.file.path"),
+				Create:         conf.Viper.GetBool("destination.file.create"),
+				Append:         conf.Viper.GetBool("destination.file.append"),
+				FileMode:       os.FileMode(conf.Viper.GetUint32("destination.file.mode")),
+				DirMode:        os.FileMode(conf.Viper.GetUint32("destination.file.dir_mode")),
+				SyncAfterWrite: conf.Viper.GetBool("destination.file.sync"),
+			})
 		} else {
-			l.writer = newStdoutWriter()
+			l.writer = writers.NewStdoutWriter()
 		}
 
 		l.golangSet()
