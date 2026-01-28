@@ -261,6 +261,15 @@ func (l *LogGen) Run() {
 
 		if len(conf.Viper.GetString("destination.network")) != 0 {
 			l.writer = writers.NewNetworkWriter(conf.Viper.GetString("destination.network"), conf.Viper.GetString("destination.address"))
+		} else if len(conf.Viper.GetString("destination.file.path")) != 0 {
+			l.writer = writers.NewFileWriter(writers.FileLogWriterConfig{
+				Path:           conf.Viper.GetString("destination.file.path"),
+				Create:         conf.Viper.GetBool("destination.file.create"),
+				Append:         conf.Viper.GetBool("destination.file.append"),
+				FileMode:       os.FileMode(conf.Viper.GetUint32("destination.file.mode")),
+				DirMode:        os.FileMode(conf.Viper.GetUint32("destination.file.dir_mode")),
+				SyncAfterWrite: conf.Viper.GetBool("destination.file.sync"),
+			})
 		} else {
 			l.writer = writers.NewStdoutWriter()
 		}
