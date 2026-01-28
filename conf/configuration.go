@@ -67,4 +67,10 @@ func Init() {
 	Viper.SetDefault("golang.weight.info", 1)
 	Viper.SetDefault("golang.weight.warning", 0)
 	Viper.SetDefault("golang.weight.debug", 0)
+
+	Viper.SetDefault("destination.file.create", true)
+	Viper.SetDefault("destination.file.append", true)
+	Viper.SetDefault("destination.file.mode", 0644)
+	Viper.SetDefault("destination.file.dir_mode", 0755)
+	Viper.SetDefault("destination.file.sync", false)
 }
