@@ -1,4 +1,4 @@
-// Copyright © 2023 Kube logging authors
+// Copyright © 2025 Kube logging authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,46 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License."""
 
-package loggen
+package writers
 
 import (
 	"fmt"
 	"net"
 	"time"
 
-	logger "github.com/sirupsen/logrus"
-
 	"github.com/cenkalti/backoff/v4"
+	logger "github.com/sirupsen/logrus"
 
 	"github.com/kube-logging/log-generator/log"
 	"github.com/kube-logging/log-generator/metrics"
 )
-
-type LogWriter interface {
-	Send(log.Log)
-	Close()
-}
-
-type StdoutLogWriter struct{}
-
-func newStdoutWriter() LogWriter {
-	return &StdoutLogWriter{}
-}
-
-func (*StdoutLogWriter) Send(l log.Log) {
-	msg, size := l.String()
-
-	if l.IsFramed() {
-		msg = fmt.Sprintf("%d %s", len(msg), msg)
-	}
-
-	fmt.Println(msg)
-
-	metrics.EventEmitted.With(l.Labels()).Inc()
-	metrics.EventEmittedBytes.With(l.Labels()).Add(size)
-}
-
-func (*StdoutLogWriter) Close() {}
 
 type NetworkLogWriter struct {
 	network string
@@ -59,7 +32,7 @@ type NetworkLogWriter struct {
 	conn    net.Conn
 }
 
-func newNetworkWriter(network string, address string) LogWriter {
+func NewNetworkWriter(network string, address string) LogWriter {
 	nlw := &NetworkLogWriter{
 		network: network,
 		address: address,
