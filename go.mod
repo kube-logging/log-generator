@@ -8,12 +8,11 @@ require (
 	github.com/dhoomakethu/stress v0.0.0-20230620054616-291ff04e1c89
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-viper/encoding/ini v0.1.1
-	github.com/kube-logging/log-generator/formats/custom v0.0.0-20250206095042-0df4b7b9896b
-	github.com/kube-logging/log-generator/log v0.0.0-20250206095042-0df4b7b9896b
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/mroth/weightedrand v1.0.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/sirupsen/logrus v1.9.4
+	github.com/spf13/cast v1.10.0
 	github.com/spf13/viper v1.21.0
 )
 
@@ -51,7 +50,6 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
-	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect

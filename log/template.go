@@ -50,11 +50,13 @@ func NewLogTemplate(format string, fs fs.FS, data LogTemplateData) (*LogTemplate
 	}, nil
 }
 
-func FormatNames(fs fs.FS) []string {
+func FormatNames(fss []fs.FS) []string {
 	formats := []string{}
 
-	for _, t := range LoadAllTemplates(fs) {
-		formats = append(formats, strings.TrimSuffix(t.Name(), ".tmpl"))
+	for _, fs := range fss {
+		for _, t := range LoadAllTemplates(fs) {
+			formats = append(formats, strings.TrimSuffix(t.Name(), ".tmpl"))
+		}
 	}
 
 	return formats

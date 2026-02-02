@@ -2,8 +2,6 @@
 BIN := ${PWD}/bin
 export PATH := ${BIN}:${PATH}
 
-CUSTOM_FORMATS := formats/custom
-
 LICENSEI := ${BIN}/licensei
 LICENSEI_VERSION := v0.9.0
 
@@ -21,7 +19,7 @@ license-check: ${LICENSEI} ## Run license check
 	${LICENSEI} header
 
 .PHONY: license-cache
-license-cache: ${LICENSEI} go.work ## Generate license cache
+license-cache: ${LICENSEI} ## Generate license cache
 	${LICENSEI} cache
 
 .PHONY: check
@@ -30,20 +28,12 @@ check:
 	go vet ./...
 	cd log && $(MAKE) check
 
-go.work:
-	go work init . log ${CUSTOM_FORMATS}
-
-.PHONY: reinit
-reinit:
-	rm -f go.work
-	@$(MAKE) go.work
-
 .PHONY: build
-build: go.work
+build:
 	CGO_ENABLED=0 go build ${GOFLAGS} -a -o ${BIN}/loggen main.go
 
 .PHONY: test
-test: go.work
+test:
 	go test ${GOFLAGS} ./...
 	cd log && $(MAKE) test
 
