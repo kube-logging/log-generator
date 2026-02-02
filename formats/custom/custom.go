@@ -37,11 +37,19 @@ func Formats() map[string][]string {
 	}
 }
 
+func getRuntimeTemplateDir() fs.FS {
+	templateDir := strings.TrimSpace(os.Getenv("TEMPLATE_DIR"))
+	if templateDir == "" {
+		return nil
+	}
+
+	return os.DirFS(templateDir)
+}
+
 func LogFactory(logType string, format string, randomise bool) (log.Log, error) {
 	var templates []fs.FS
-	templateDir := strings.TrimSpace(os.Getenv("TEMPLATE_DIR"))
-	if len(templateDir) > 0 {
-		templates = append(templates, os.DirFS(templateDir))
+	if runtimeTemplateDir := getRuntimeTemplateDir(); runtimeTemplateDir != nil {
+		templates = append(templates, runtimeTemplateDir)
 	}
 	templates = append(templates, sysloglike.TemplateFS)
 
