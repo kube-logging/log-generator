@@ -26,9 +26,9 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/kube-logging/log-generator/conf"
 	"github.com/kube-logging/log-generator/log"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 )
 
 //go:embed *.tmpl
@@ -180,8 +180,8 @@ func (r *RandomService) SampleData(sequence *sync.Map) Syslog {
 		Facility:    20,
 		severity:    5,
 		dateTime:    time.Now(),
-		Host:        viper.GetString("message.host"),
-		AppName:     viper.GetString("message.appname"),
+		Host:        conf.Viper.GetString("message.host"),
+		AppName:     conf.Viper.GetString("message.appname"),
 		PID:         1143,
 		Seq:         1,
 		Msg:         "An application event log entry...",
@@ -208,7 +208,7 @@ var syslogRandomService *RandomService
 func syslogRandom() *RandomService {
 	if syslogRandomService == nil {
 		syslogRandomService = NewRandomService(
-			viper.GetInt("message.max-random-hosts"), viper.GetInt("message.max-random-apps"), viper.GetInt64("message.seed"))
+			conf.Viper.GetInt("message.max-random-hosts"), conf.Viper.GetInt("message.max-random-apps"), conf.Viper.GetInt64("message.seed"))
 	}
 	return syslogRandomService
 }
