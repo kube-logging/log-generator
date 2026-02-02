@@ -21,7 +21,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kube-logging/log-generator/formats/custom/sysloglike"
+	"github.com/kube-logging/log-generator/formats/sysloglike"
 	"github.com/kube-logging/log-generator/log"
 )
 
@@ -66,5 +66,11 @@ func LogFactory(logType string, format string, randomise bool) (log.Log, error) 
 }
 
 func SyslogFormatNames() []string {
-	return log.FormatNames(sysloglike.TemplateFS)
+	var templates []fs.FS
+	if runtimeTemplateDir := getRuntimeTemplateDir(); runtimeTemplateDir != nil {
+		templates = append(templates, runtimeTemplateDir)
+	}
+	templates = append(templates, sysloglike.TemplateFS)
+
+	return log.FormatNames(templates)
 }

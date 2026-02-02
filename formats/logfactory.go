@@ -16,6 +16,7 @@ package formats
 
 import (
 	"embed"
+	"io/fs"
 
 	"github.com/kube-logging/log-generator/formats/custom"
 	"github.com/kube-logging/log-generator/formats/golang"
@@ -54,7 +55,7 @@ func NewRandomWeb(format string, templates embed.FS) (*log.LogTemplate, error) {
 }
 
 func WebFormatNames() []string {
-	return log.FormatNames(web.TemplateFS)
+	return log.FormatNames([]fs.FS{web.TemplateFS})
 }
 
 func NewGolangRandom(i golang.GolangLogIntensity) log.Log {
